@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Denizli Tamgaları Yoğunluk Haritası</title>
+    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
     
@@ -19,8 +20,6 @@
     </header>
 
     <div id="map"></div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
     // --- HARİTA AYARLARI ---
@@ -39,8 +38,7 @@
         maxBoundsViscosity: 1.0
     });
 
-    // 3. Harita Altlığını Değiştiriyoruz (Koyu Mod - CartoDB Dark Matter)
-    // Not: Yoğunluk haritaları koyu zeminde daha iyi patlar.
+    // 3. Harita Altlığı (Koyu Mod)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
@@ -50,16 +48,31 @@
 
     // --- VERİ HAZIRLIĞI ---
 
-    // Ana lokasyonlarımız (Merkezler)
+    // Ana lokasyonlarımız (Eksik olan 'link' özellikleri eklendi)
     var mainLocations = [
-        { name: "Kale-i Tavas Mezarlığı", coords: [37.568, 29.070] },
-        { name: "Çardak Han Kervansarayı", coords: [37.825, 29.660] },
-        { name: "Denizli Kent Müzesi", coords: [37.774, 29.087] },
-        { name: "Çivril Özdemirci Mezarlığı", coords: [38.295, 29.730] }
+        { 
+            name: "Kale-i Tavas Mezarlığı", 
+            coords: [37.568, 29.070], 
+            " 
+        },
+        { 
+            name: "Çardak Han Kervansarayı", 
+            coords: [37.825, 29.660], 
+            " 
+        },
+        { 
+            name: "Denizli Kent Müzesi", 
+            coords: [37.774, 29.087], 
+            " 
+        },
+        { 
+            name: "Çivril Özdemirci Mezarlığı", 
+            coords: [38.295, 29.730], 
+           " 
+        }
     ];
 
     // HEATMAP İÇİN VERİ SİMÜLASYONU
-    // 4 ana noktanın etrafına rastgele küçük noktalar saçarak yoğunluk oluşturuyoruz.
     var heatDataPoints = [];
 
     mainLocations.forEach(function(loc) {
@@ -68,10 +81,8 @@
 
         // Her merkezin etrafına 50 tane rastgele küçük nokta ekle
         for (let i = 0; i < 50; i++) {
-            // Rastgele koordinat kaydırma işlemi
-            var randomLat = loc.coords[0] + (Math.random() - 0.5) / 20; // +/- 0.025 derece sapma
+            var randomLat = loc.coords[0] + (Math.random() - 0.5) / 20; 
             var randomLng = loc.coords[1] + (Math.random() - 0.5) / 20;
-            // Bu noktaların yoğunluk etkisi daha düşük olsun (0.5)
             heatDataPoints.push([randomLat, randomLng, 0.5]);
         }
     });
@@ -81,10 +92,9 @@
 
     // 1. HEATMAP (YOĞUNLUK) KATMANI
     var heat = L.heatLayer(heatDataPoints, {
-        radius: 25,   // Noktaların bulanıklık yarıçapı (artarsa daha geniş alan kızarır)
-        blur: 20,     // Yumuşaklık geçişi
-        maxZoom: 10,  // Yoğunluğun zirve yaptığı yakınlaştırma seviyesi
-        // Renk gradyanını özelleştirebilirsin (isteğe bağlı)
+        radius: 25,
+        blur: 20,
+        maxZoom: 10,
         gradient: {
             0.2: 'blue',
             0.4: 'cyan',
@@ -96,7 +106,6 @@
 
 
     // 2. İŞARETÇİ (MARKER) KATMANI
-    // Yoğunluk haritasının üzerine yine de tıklanabilir ana merkezleri koymalıyız.
     mainLocations.forEach(function(loc) {
         var marker = L.marker(loc.coords).addTo(map);
         marker.bindPopup(`
@@ -107,6 +116,6 @@
         `);
     });
 
-</script>
+    </script>
 </body>
 </html>
