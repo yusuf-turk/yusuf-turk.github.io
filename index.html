@@ -327,10 +327,10 @@
     };
 
     var locations = [
-        { id: "tavas", name: "Kale-i Tavas Yukarı Mezarlığı ", coords: [37.568, 29.070] },
-        { id: "cardak", name: "Çardak Han Kervansarayı", coords: [37.825, 29.660] },
-        { id: "muze", name: "Denizli Kent Müzesi", coords: [37.774, 29.087] },
-        { id: "civril", name: "Çivril Özdemirci Mezarlığı", coords: [38.295, 29.730] }
+        { id: "tavas", name: "Kale-i Tavas Yukarı Mezarlığı ", coords: [37.4362, 28.8518] },
+        { id: "cardak", name: "Çardak Han Kervansarayı", coords: [37.8284, 29.6660] },
+        { id: "muze", name: "Denizli Kent Müzesi", coords: [37.7819, 29.0851] },
+        { id: "civril", name: "Çivril Özdemirci Mezarlığı", coords: [38.0369, 29.7505] }
     ];
 
     // --- 4. RENDER VE İKONLAR ---
@@ -392,25 +392,42 @@
 
     // --- HEATMAP ---
     var heatPoints = [];
+    
     locations.forEach(loc => {
+        // Merkez noktayı ekle
         heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
+        
         var tamgaSayisi = locationData[loc.id].koleksiyon.length;
-        var carsipan = 25; 
+        
+        // Çoğaltma Katsayısı: Harita daha dolu görünsün diye artırdım (25 -> 50)
+        var carsipan = 50; 
         
         for(let i=0; i < (tamgaSayisi * carsipan); i++) {
-            var spread = 18; 
+            // Yayılma (Spread): Sayıyı küçülterek (18->12) noktaların daha geniş alana yayılmasını sağladık
+            var spread = 12; 
+            
             heatPoints.push([
                 loc.coords[0] + (Math.random()-0.5)/spread, 
                 loc.coords[1] + (Math.random()-0.5)/spread, 
-                0.6 
+                0.5 // Yan noktaların yoğunluk etkisi
             ]);
         }
     });
 
     L.heatLayer(heatPoints, { 
-        radius: 30, 
-        blur: 25, 
-        gradient: {0.3: '#c89b3c', 0.6: '#e67e22', 1: '#c0392b'} 
+        radius: 45,   // Boyut büyütüldü (Daha geniş halkalar)
+        blur: 35,     // Bulanıklık artırıldı (Daha yumuşak geçiş)
+        maxZoom: 11,  // Yoğunluğun patladığı zoom seviyesi ayarlandı
+        
+        // YENİ RENK PALETİ: Uydu üzerinde "Neon" gibi parlayan renkler seçildi.
+        // Standart kırmızı yerine; Mavi -> Turkuaz -> Yeşil -> Sarı -> Kırmızı geçişi.
+        gradient: {
+            0.1: '#0000ff',  // Lacivert (En dış)
+            0.3: '#00ffff',  // Turkuaz (Cyan) -> Uyduda çok net belli olur
+            0.5: '#00ff00',  // Neon Yeşil
+            0.7: '#ffff00',  // Sarı
+            1.0: '#ff0000'   // Kırmızı (Merkez)
+        } 
     }).addTo(map);
 
     </script>
