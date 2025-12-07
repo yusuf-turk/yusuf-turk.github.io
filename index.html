@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları - Tarihsel Atlas</title>
+    <title>Denizli'de Türk Tamgaları</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
@@ -215,7 +215,7 @@
 <body>
 
     <header>
-        <h2>Denizli Tamga Atlası</h2>
+        <h2>Denizli'de Türk Tamgaları</h2>
     </header>
 
     <div class="main-container">
@@ -260,7 +260,7 @@
 
 
     // --- 3. VERİTABANI ---
-    // NOT: 'numara' alanını istediğin gibi değiştirebilirsin (Örn: "01", "A-1", "Tamga 1")
+    
     var locationData = {
         "tavas": {
             mainTitle: "Kale-i Tavas Yukarı Mezarlığı",
@@ -357,7 +357,6 @@
             var htmlContent = `<h2 class="location-header">${data.mainTitle}</h2>`;
 
             data.koleksiyon.forEach(function(item) {
-                // NUMARAYI VERİDEN ÇEKİYORUZ
                 htmlContent += `
                     <div class="tamga-card">
                         <div class="card-header">
