@@ -19,36 +19,61 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // 1. Haritayı başlat (Koordinatlar: Denizli Merkez)
-        var map = L.map('map').setView([37.7765, 29.0864], 9);
+    // 1. Denizli Sınırlarını Belirle (Güneybatı ve Kuzeydoğu köşe koordinatları)
+    // Çivril, Çardak ve Kale ilçelerini kapsayacak genişlikte bir kutu çiziyoruz.
+    var guneyBati = L.latLng(37.000, 28.300); // Tavas/Kale'nin güneyi
+    var kuzeyDogu = L.latLng(38.500, 30.100); // Çivril/Çardak'ın kuzeyi
+    var denizliSinirlari = L.latLngBounds(guneyBati, kuzeyDogu);
 
-        // 2. Harita katmanını ekle (OpenStreetMap kullanıyoruz)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+    // 2. Haritayı Başlat (Kısıtlamalarla birlikte)
+    var map = L.map('map', {
+        center: [37.7765, 29.0864], // Açılış merkezi (Denizli Mrk)
+        zoom: 9,                    // Başlangıç yakınlığı
+        minZoom: 8,                 // Daha fazla uzaklaşamasınlar
+        maxBounds: denizliSinirlari,// Kullanıcı bu sınırların dışına çıkamaz
+        maxBoundsViscosity: 1.0     // Sınıra gelince harita esnemesin, tam dursun
+    });
 
-        // 3. Lokasyonlar ve Koordinatları (Yaklaşık değerlerdir, hassas ayar yapabilirsin)
-        var locations = [
-            {
-                name: "Kale-i Tavas Mezarlığı",
-                coords: [37.568, 29.070], // Tavas/Kale civarı
-            },
-            {
-                name: "Çardak Han Kervansarayı",
-                coords: [37.825, 29.660], // Çardak
-                
-            },
-            {
-                name: "Denizli Kent Müzesi",
-                coords: [37.774, 29.087], // Merkez
-                
-            },
-            {
-                name: "Çivril Özdemirci Mezarlığı",
-                coords: [38.295, 29.730], // Çivril tarafı
-                
-            }
-        ];
+    // 3. Harita katmanını ekle
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 4. Lokasyonlar
+    var locations = [
+        {
+            name: "Kale-i Tavas Mezarlığı",
+            coords: [37.568, 29.070],
+           
+        },
+        {
+            name: "Çardak Han Kervansarayı",
+            coords: [37.825, 29.660],
+            
+        },
+        {
+            name: "Denizli Kent Müzesi",
+            coords: [37.774, 29.087],
+            
+        },
+        {
+            name: "Çivril Özdemirci Mezarlığı",
+            coords: [38.295, 29.730],
+            
+        }
+    ];
+
+    // 5. İşaretçileri Ekle
+    locations.forEach(function(loc) {
+        var marker = L.marker(loc.coords).addTo(map);
+        marker.bindPopup(`
+            <div style="text-align:center">
+                <b>${loc.name}</b><br><br>
+                <a href="${loc.link}" style="background-color:#2c3e50; color:white; padding:5px 10px; text-decoration:none; border-radius:5px;">İncele</a>
+            </div>
+        `);
+    });
+</script>
 
         // 4. İşaretçileri (Marker) döngü ile ekle
         locations.forEach(function(loc) {
