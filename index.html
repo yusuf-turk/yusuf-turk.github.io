@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Denizli Antik Eserler Dijital Arşivi</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+        }
+        header {
+            background: #1a73e8;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 1rem;
+        }
+        h2 {
+            margin-top: 2rem;
+            color: #333;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .card {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .card img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        footer {
+            margin-top: 3rem;
+            background: #111;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Denizli Antik Eserler Dijital Arşivi</h1>
+    <p>QR Kod ile erişilebilen dijital kültür mirası projesi</p>
+</header>
+
+<div class="container">
+    <h2>📜 Antik Eserler</h2>
+    <div class="grid">
+        <div class="card">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Hierapolis_theater%2C_Pamukkale_%28Denizli%29.jpg" alt="Hierapolis Antik Tiyatrosu">
+            <h3>Hierapolis Antik Tiyatrosu</h3>
+            <p>Hierapolis'te bulunan, Roma dönemine ait görkemli bir antik tiyatro.</p>
+        </div>
+
+        <div class="card">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Laodikeia_Zeus_Tap.jpg" alt="Laodikeia Antik Kenti">
+            <h3>Laodikeia Antik Kenti</h3>
+            <p>Denizli'nin en önemli antik şehirlerinden biri. Tiyatro, tapınak ve agora kalıntılarını içerir.</p>
+        </div>
+
+        <div class="card">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Karahayit_Turkey_Red_Water_01.JPG" alt="Karahayıt Kırmızı Su">
+            <h3>Karahayıt Kırmızı Su</h3>
+            <p>Termal özelliğiyle ünlü kırmızı su kaynakları. Antik dönemden beri şifa merkezi.</p>
+        </div>
+    </div>
+
+    <h2>📍 Harita</h2>
+    <iframe
+        src="https://www.google.com/maps/d/embed?mid=1rIDwSXVQwY52NGlV-tD1nUjZYxU"
+        width="100%"
+        height="400"
+        style="border:0; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);"
+        allowfullscreen=""
+        loading="lazy">
+    </iframe>
+</div>
+
+<footer>
+    © 2025 Denizli Antik Eserler Dijital Arşivi
+</footer>
+
+</body>
+</html>
