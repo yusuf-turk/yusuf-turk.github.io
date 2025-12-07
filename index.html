@@ -74,18 +74,5 @@
         `);
     });
 </script>
-
-        // 4. İşaretçileri (Marker) döngü ile ekle
-        locations.forEach(function(loc) {
-            var marker = L.marker(loc.coords).addTo(map);
-            
-            // Tıklayınca açılan kutucuk ve link
-            marker.bindPopup(`
-                <b>${loc.name}</b><br>
-                <a href="${loc.link}" style="color:blue; text-decoration:underline;">İncelemek için tıkla</a>
-            `);
-        });
-
-    </script>
 </body>
 </html>
