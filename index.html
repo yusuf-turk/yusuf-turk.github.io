@@ -1,62 +1,67 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Denizli</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
-        header {
-            background: #1a73e8;
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 1rem;
-        }
-        h2 {
-            margin-top: 2rem;
-            color: #333;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .card {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .card img {
-            width: 100%;
-            border-radius: 8px;
-        }
-        footer {
-            margin-top: 3rem;
-            background: #111;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denizli Tamgaları Haritası</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-    <h1>Denizli Tamgalar</h1>
-    <p></p>
-</header>
+    <header>
+        <h1>Denizli Tamga Yoğunluk Haritası</h1>
+        <p>Lokasyonları incelemek için haritadaki işaretlere tıklayınız.</p>
+    </header>
 
+    <div id="map"></div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // 1. Haritayı başlat (Koordinatlar: Denizli Merkez)
+        var map = L.map('map').setView([37.7765, 29.0864], 9);
+
+        // 2. Harita katmanını ekle (OpenStreetMap kullanıyoruz)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 3. Lokasyonlar ve Koordinatları (Yaklaşık değerlerdir, hassas ayar yapabilirsin)
+        var locations = [
+            {
+                name: "Kale-i Tavas Mezarlığı",
+                coords: [37.568, 29.070], // Tavas/Kale civarı
+                link: "pages/kale-i-tavas.html"
+            },
+            {
+                name: "Çardak Han Kervansarayı",
+                coords: [37.825, 29.660], // Çardak
+                link: "pages/cardak-han.html"
+            },
+            {
+                name: "Denizli Kent Müzesi",
+                coords: [37.774, 29.087], // Merkez
+                link: "pages/denizli-muze.html"
+            },
+            {
+                name: "Çivril Özdemirci Mezarlığı",
+                coords: [38.295, 29.730], // Çivril tarafı
+                link: "pages/civril-ozdemirci.html"
+            }
+        ];
+
+        // 4. İşaretçileri (Marker) döngü ile ekle
+        locations.forEach(function(loc) {
+            var marker = L.marker(loc.coords).addTo(map);
+            
+            // Tıklayınca açılan kutucuk ve link
+            marker.bindPopup(`
+                <b>${loc.name}</b><br>
+                <a href="${loc.link}" style="color:blue; text-decoration:underline;">İncelemek için tıkla</a>
+            `);
+        });
+
+    </script>
 </body>
 </html>
