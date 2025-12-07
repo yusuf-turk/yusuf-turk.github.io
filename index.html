@@ -3,24 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları - Tarihsel Atlas</title>
+    <title>Denizli Tamgaları - 3D Tarihsel Atlas</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. GENEL SAYFA TASARIMI --- */
-        body {
-            font-family: 'Lato', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #0f1012;
-            color: #d1d5db;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        /* --- 1. GENEL TASARIM (Antrasit & Bakır) --- */
+        body { font-family: 'Lato', sans-serif; margin: 0; padding: 0; background-color: #0f1012; color: #d1d5db; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
         header {
             background: linear-gradient(to right, #1a1b1e, #25262b);
@@ -34,28 +26,11 @@
             position: relative;
         }
         
-        header h2 { 
-            margin: 0; 
-            font-family: 'Cinzel', serif;
-            font-size: 1.8rem;
-            letter-spacing: 2px; 
-            text-transform: uppercase; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
+        header h2 { margin: 0; font-family: 'Cinzel', serif; font-size: 1.8rem; letter-spacing: 2px; text-transform: uppercase; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
 
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        #map {
-            flex: 3;
-            height: 100%;
-            background-color: #000;
-            z-index: 1;
-        }
+        .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
+        
+        #map { flex: 3; height: 100%; background-color: #000; z-index: 1; }
 
         #sidebar {
             flex: 1.3;
@@ -67,17 +42,13 @@
             z-index: 2;
         }
 
-        #sidebar-content {
-            padding: 25px;
-            padding-bottom: 100px;
-        }
-
+        #sidebar-content { padding: 25px; padding-bottom: 100px; }
         #sidebar::-webkit-scrollbar { width: 8px; }
         #sidebar::-webkit-scrollbar-track { background: #16171a; }
         #sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; border: 2px solid #16171a; }
         #sidebar::-webkit-scrollbar-thumb:hover { background: #c89b3c; }
 
-        /* --- 2. KART TASARIMI --- */
+        /* --- 2. KART VE İÇERİK TASARIMI --- */
         .location-header {
             color: #e5e7eb;
             font-family: 'Cinzel', serif;
@@ -100,97 +71,37 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             transition: all 0.3s ease;
         }
-        .tamga-card:hover {
-            border-color: #c89b3c;
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
+        .tamga-card:hover { border-color: #c89b3c; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
 
-        .card-header {
-            background-color: #25262b;
-            padding: 15px 20px;
-            border-bottom: 1px solid #2a2b2e;
-            display: flex;
-            align-items: center;
-        }
+        .card-header { background-color: #25262b; padding: 15px 20px; border-bottom: 1px solid #2a2b2e; display: flex; align-items: center; }
 
         .card-number {
-            font-family: 'Cinzel', serif;
-            font-size: 1.3rem;
-            color: #c89b3c;
-            font-weight: bold;
-            opacity: 0.9;
-            min-width: fit-content;
-            white-space: nowrap;
-            border-right: 1px solid #444; 
-            padding-right: 15px; 
-            margin-right: 15px; 
+            font-family: 'Cinzel', serif; font-size: 1.3rem; color: #c89b3c; font-weight: bold; opacity: 0.9;
+            min-width: fit-content; white-space: nowrap; border-right: 1px solid #444; padding-right: 15px; margin-right: 15px; 
         }
 
-        .tamga-title {
-            color: #fff;
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-            line-height: 1.4;
+        .tamga-title { color: #fff; margin: 0; font-size: 1.1rem; font-weight: 700; line-height: 1.4; }
+        .tamga-img { width: 100%; height: auto; display: block; border-bottom: 1px solid #2a2b2e; filter: brightness(0.9); transition: filter 0.3s; }
+        .tamga-card:hover .tamga-img { filter: brightness(1.1); }
+        .card-details { padding: 20px; }
+        .detail-row { margin-bottom: 15px; font-size: 0.95rem; line-height: 1.6; border-left: 2px solid #333; padding-left: 15px; }
+        .detail-row:last-child { margin-bottom: 0; border-left: 2px solid #c89b3c; }
+        .label { color: #9ca3af; font-size: 0.75rem; font-weight: 700; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .value { color: #e5e7eb; font-weight: 400; }
+        .value.desc { color: #d1d5db; font-style: italic; }
+
+        /* 3D Harita için Marker Stili */
+        .custom-marker {
+            background-image: url('https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png');
+            background-size: cover;
+            width: 30px;
+            height: 50px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 8px #c89b3c); /* Bakır ışıltısı */
         }
 
-        .tamga-img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-bottom: 1px solid #2a2b2e;
-            filter: brightness(0.9);
-            transition: filter 0.3s;
-        }
-        .tamga-card:hover .tamga-img {
-            filter: brightness(1.1);
-        }
-
-        .card-details {
-            padding: 20px;
-        }
-
-        .detail-row {
-            margin-bottom: 15px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            border-left: 2px solid #333;
-            padding-left: 15px;
-        }
-        .detail-row:last-child {
-            margin-bottom: 0;
-            border-left: 2px solid #c89b3c;
-        }
-
-        .label {
-            color: #9ca3af;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: block;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .value {
-            color: #e5e7eb;
-            font-weight: 400;
-        }
-        
-        .value.desc {
-            color: #d1d5db;
-            font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-            .main-container { flex-direction: column; }
-            #map { flex: 1; height: 50vh; }
-            #sidebar { flex: 1; height: 50vh; }
-        }
+        @media (max-width: 768px) { .main-container { flex-direction: column; } #map { flex: 1; height: 50vh; } #sidebar { flex: 1; height: 50vh; } }
     </style>
-    
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -211,21 +122,44 @@
     </div>
 
     <script>
-    // --- 1. HARİTA BAŞLATMA ---
-    var map = L.map('map', {
-        center: [37.7765, 29.0864], // Denizli Merkez [ENLEM, BOYLAM]
-        zoom: 9, 
-        zoomControl: false,
-        attributionControl: false
+    // -----------------------------------------------------------------------
+    // !!! BURAYA KENDİ TOKENİNİZİ YAPIŞTIRMALISINIZ !!!
+    // Mapbox sitesinden ücretsiz alabilirsiniz. Yoksa harita beyaz görünür.
+    mapboxgl.accessToken = 'pk.eyJ1IjoieXVzdWZ0dXJrIiwiYSI6ImNtaXc0eXU0ZzB2eWczZ3M4ZHAwdDY3MXQifQ.ZGuW9mBmkCpZilFZvNmPzA'; 
+    // -----------------------------------------------------------------------
+
+    // 1. 3D HARİTA AYARLARI
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/satellite-streets-v12', // Uydu + Yol
+        center: [29.0864, 37.7765], // [Boylam, Enlem] - DİKKAT: Leaflet'in tersidir!
+        zoom: 8.5,
+        pitch: 60, // Haritayı 60 derece eğ (3D görünüm için)
+        bearing: -10, // Hafif döndür
+        projection: 'globe' // Dünya yuvarlaklığı
     });
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Uydu Haritası Katmanı
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { 
-        maxZoom: 18 
-    }).addTo(map);
+    // Harita yüklendiğinde dağları yükselt (Terrain) ve Sis ekle
+    map.on('style.load', () => {
+        map.setFog({
+            'range': [1, 10],
+            'color': '#0f1012', 
+            'high-color': '#1a1b1e',
+            'horizon-blend': 0.1
+        });
 
-    // --- 2. VERİTABANI ---
+        map.addSource('mapbox-dem', {
+            'type': 'raster-dem',
+            'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            'tileSize': 512,
+            'maxzoom': 14
+        });
+        map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 }); // Dağları 1.5 kat yükselt
+    });
+
+    map.addControl(new mapboxgl.NavigationControl()); // Zoom butonları
+
+    // 2. İÇERİK VERİTABANI (ORİJİNAL)
     var locationData = {
         "tavas": {
             mainTitle: "Kale-i Tavas",
@@ -292,35 +226,39 @@
         }
     };
 
-    // --- 3. LOKASYONLAR (DÜZELTİLMİŞ KOORDİNATLAR - LEAFLET FORMATI: [ENLEM, BOYLAM]) ---
+    // --- 3. LOKASYONLAR VE MARKERLAR ---
+    // ÖNEMLİ: Mapbox'ta koordinatlar [BOYLAM, ENLEM] sırasındadır.
     var locations = [
-        { id: "tavas", name: "Kale-i Tavas", coords: [37.4362, 28.8518] },
-        { id: "cardak", name: "Çardak Han", coords: [37.8284, 29.6660] },
-        { id: "muze", name: "Kent Müzesi", coords: [37.7819, 29.0851] },
-        { id: "civril", name: "Özdemirci Mz.", coords: [38.0369, 29.7505] }
+        { id: "tavas", coords: [28.8518, 37.4363] }, // Kale-i Tavas
+        { id: "cardak", coords: [29.6660, 37.8284] }, // Çardak Han
+        { id: "muze", coords: [29.0851, 37.7819] }, // Kent Müzesi
+        { id: "civril", coords: [29.7505, 38.0369] } // Özdemirci Mz.
     ];
 
-    // --- 4. RENDER VE İKONLAR ---
-    // Özel Bakır İkon
-    var copperIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png', 
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
-    });
-
     locations.forEach(function(loc) {
-        var marker = L.marker(loc.coords, {icon: copperIcon}).addTo(map);
-        marker.bindTooltip(loc.name, { permanent: true, direction: 'top', className: 'map-label', offset: [0, -35] });
-        
-        marker.on('click', function() {
-            // Tıklayınca o bölgeye yakınlaş (FlyTo Animasyonu)
-            map.flyTo(loc.coords, 15, { animate: true, duration: 1.5 });
+        // Özel Marker Elementi Oluştur
+        const el = document.createElement('div');
+        el.className = 'custom-marker';
 
+        // Marker'ı Haritaya Ekle
+        new mapboxgl.Marker(el)
+            .setLngLat(loc.coords)
+            .addTo(map);
+
+        // Tıklama Olayı (Sinematik 3D Uçuş + Sidebar Güncelleme)
+        el.addEventListener('click', () => {
+            // 1. UÇUŞ
+            map.flyTo({
+                center: loc.coords,
+                zoom: 16,        
+                pitch: 70,       
+                bearing: 40,     
+                speed: 0.8,      
+                curve: 1.5       
+            });
+
+            // 2. İÇERİK GÜNCELLEME
             var data = locationData[loc.id];
-            var sidebar = document.getElementById('sidebar'); 
             var sidebarContent = document.getElementById('sidebar-content');
             
             var htmlContent = `<h2 class="location-header">${data.mainTitle}</h2>`;
@@ -332,9 +270,7 @@
                             <span class="card-number">${item.numara}</span>
                             <h3 class="tamga-title">${item.baslik}</h3>
                         </div>
-                        
                         <img src="${item.resim}" class="tamga-img" alt="${item.baslik}">
-                        
                         <div class="card-details">
                             <div class="detail-row">
                                 <span class="label">TAHMİNİ ZAMAN</span>
@@ -354,7 +290,7 @@
             });
 
             sidebarContent.innerHTML = htmlContent;
-            sidebar.scrollTop = 0;
+            document.getElementById('sidebar').scrollTop = 0;
         });
     });
 
