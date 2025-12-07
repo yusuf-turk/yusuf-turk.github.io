@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Denizli Tamgaları - Tarihsel Atlas</title>
     
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -41,7 +42,6 @@
             text-transform: uppercase; 
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
-        header p { margin: 8px 0 0; color: #9ca3af; font-size: 0.9rem; font-weight: 300; }
 
         .main-container {
             display: flex;
@@ -76,7 +76,6 @@
         #sidebar::-webkit-scrollbar-track { background: #16171a; }
         #sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; border: 2px solid #16171a; }
         #sidebar::-webkit-scrollbar-thumb:hover { background: #c89b3c; }
-
 
         /* --- 2. KART TASARIMI --- */
         .location-header {
@@ -113,21 +112,19 @@
             border-bottom: 1px solid #2a2b2e;
             display: flex;
             align-items: center;
-            /* gap: 15px;  <-- Bunu kaldırdık, boşluğu aşağıda yöneteceğiz */
         }
 
         .card-number {
             font-family: 'Cinzel', serif;
-            font-size: 1.3rem; /* Fontu biraz küçülttük ki uzun kodlar sığsın */
+            font-size: 1.3rem;
             color: #c89b3c;
             font-weight: bold;
             opacity: 0.9;
             
-            /* SIĞDIRMA AYARLARI BURADA */
-            min-width: fit-content; /* İçindeki yazı kadar genişle */
-            white-space: nowrap;    /* Asla alt satıra geçme */
+            /* T-34 gibi uzun numaralar için sığdırma ayarı */
+            min-width: fit-content; 
+            white-space: nowrap;    
             
-            /* Başlık ile arasına çizgi ve boşluk ekleyelim */
             border-right: 1px solid #444; 
             padding-right: 15px; 
             margin-right: 15px; 
@@ -189,18 +186,6 @@
             font-style: italic;
         }
 
-        .map-label {
-            background: rgba(22, 23, 26, 0.85);
-            border: 1px solid #c89b3c;
-            border-radius: 4px;
-            color: #fff;
-            font-family: 'Cinzel', serif;
-            font-size: 13px;
-            padding: 4px 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            margin-top: -10px;
-        }
-
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
             #map { flex: 1; height: 50vh; }
@@ -209,7 +194,6 @@
     </style>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 </head>
 <body>
 
@@ -230,6 +214,7 @@
     </div>
 
     <script>
+    // --- HARİTA BAŞLATMA ---
     var map = L.map('map', {
         center: [37.7765, 29.0864],
         zoom: 9, 
@@ -238,101 +223,86 @@
     });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }).addTo(map);
+    // Uydu Haritası Katmanı
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { 
+        maxZoom: 18 
+    }).addTo(map);
 
-    fetch('https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json')
-        .then(res => res.json())
-        .then(data => {
-            var denizliFeature = data.features.find(f => f.properties.name === 'Denizli');
-            if (denizliFeature) {
-                L.geoJSON(denizliFeature, { style: { color: '#c89b3c', weight: 2, opacity: 0.9, fillOpacity: 0 } }).addTo(map);
-                
-                var worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
-                var denizliCoords = [];
-                var geometry = denizliFeature.geometry;
-                if (geometry.type === 'Polygon') denizliCoords = geometry.coordinates[0].map(c => [c[1], c[0]]);
-                else if (geometry.type === 'MultiPolygon') denizliCoords = geometry.coordinates[0][0].map(c => [c[1], c[0]]);
-
-                L.polygon([worldPolygon, denizliCoords], { color: 'transparent', fillColor: '#0f1012', fillOpacity: 1 }).addTo(map);
-            }
-        });
-
-
-    // --- 3. VERİTABANI ---
-    // NOT: 'numara' alanını istediğin gibi değiştirebilirsin (Örn: "01", "A-1", "Tamga 1")
+    // --- VERİTABANI ---
     var locationData = {
         "tavas": {
-            mainTitle: "Kale-i Tavas Yukarı Mezarlığı",
+            mainTitle: "Kale-i Tavas",
             yerText: "Kale-i Tavas Yukarı Mezarlığı Mezar Taşları",
             koleksiyon: [
-                {numara:"T-1", baslik: "Kuyistan Tamgası", donem: "12. ve 13. Yüzyıl", resim: "../images/tavas1.png", aciklama: "Sonradan Türkleşen bir Moğol kabilesine ait ve Konurat boyunun tamgası olduğu düşünülmektedir." },
-                { numara:"T-2",baslik: "Hun ve Avar boylarının, alt boylarının tamgalarına benzemektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas2.png", aciklama: "Orta Asya’dan Anadolu'ya gelen boyların zamanla alt boylara ayrılıp kendi işaretlerini aldıkları düşünülmektedir." },
-                { numara:"T-3",baslik: "Hazar Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 12. Yüzyıl", resim: "../images/tavas3.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-4",baslik: "Hayat Ağacı Figürü", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas4.png", aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır." },
-                { numara:"T-5",baslik: "Hayat Ağacı Figürü", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas5.png", aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır." },
-                { numara:"T-6",baslik: "Avar, Hazar ve Peçenek boylarının alt boy tamgaları olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas6.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-7",baslik: "Hazar Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "9 ve 12. Yüzyıl", resim: "../images/tavas7.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-8",baslik: "Tatar Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 12. Yüzyıl", resim: "../images/tavas8.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-9",baslik: "Boy tamgası olduğu düşünülmektedir.", donem: "11 ve 12. Yüzyıl", resim: "../images/tavas9.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-10",baslik: "Avşar boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas10.png", aciklama: "Uğur getiren veya avcı anlamlarına geldiği düşünülmektedir." },
-                { numara:"T-11",baslik: "Kınık boyu tamgası olduğu düşünülmektedir.", donem: "10 ve 11. Yüzyıl", resim: "../images/tavas11.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-12",baslik: "Hayat Ağacı Figürü", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas12.png", aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır." },
-                { numara:"T-13",baslik: "Kınık boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas13.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-14",baslik: "Afşar ya da Çepni Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas14.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-15",baslik: "Avar,Hazar ve Kızık boylarının tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas15.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-28",baslik: "Çepni boyu veya İğdir boyunun alt boylarına ait bir tamga olduğu düşünülmektedir.", donem: "11 ve 15. Yüzyıl", resim: "../images/tavas16.png", aciklama: "Gökyüzü ile yeryüzünü bağladığına inanılmaktadır." },
-                { numara:"T-29",baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas17.png", aciklama: "Orta Asya’dan beri Türklerde geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir.Ayrıca Orta Asya’dan beri Türklerin bu tarz sembolleri halı, elbise gibi günlük hayatta kullanılan motiflerde de sıkça kullanıldıkları görülmektedir." },
-                { numara:"T-30",baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas18.png", aciklama: "Orta Asya’dan beri Türklerde geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir." },
-                { numara:"T-31",baslik: "Çepni boyu veya İğdir boyuna ait tamga olduğu düşünülmektedir.", resim: "../images/tavas19.png", aciklama: "Gökyüzünü simgelediği düşünülmektedir.Ayrıca güneş, gök tengri veya gezegenler gibi kutsal unsurlar ile de ilişkilendirilebilir." },
-                { numara:"T-32",baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas20.png", aciklama: "Orta Asya’dan beri Türklerde geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir." },
-                { numara:"T-33",baslik: "Kayı boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas21.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-35",baslik: "Kayı boyu Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas22.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-36",baslik: "Yıva Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas23.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-37",baslik: "Sepruş (Dilimli Başlık)", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas24.png", aciklama: "Başlık genellikle ölen kişinin inancını, tarikatını ve bazen de sosyal statüsünü gösterir." }]
+                { numara: "T-01", baslik: "Kuyistan Tamgası", donem: "12. ve 13. Yüzyıl", resim: "images/tavas1.png", aciklama: "Sonradan Türkleşen bir Moğol kabilesine ait ve Konurat boyunun tamgası olduğu düşünülmektedir." },
+                { numara: "T-02", baslik: "Hun ve Avar boylarının, alt boylarının tamgalarına benzemektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas2.png", aciklama: "Orta Asya’dan Anadolu'ya gelen boyların zamanla alt boylara ayrılıp kendi işaretlerini aldıkları düşünülmektedir." },
+                { numara: "T-03", baslik: "Hazar Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 12. Yüzyıl", resim: "images/tavas3.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-04", baslik: "Hayat Ağacı Figürü", donem: "11 ve 13. Yüzyıl", resim: "images/tavas4.png", aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır." },
+                { numara: "T-05", baslik: "Hayat Ağacı Figürü", donem: "11 ve 13. Yüzyıl", resim: "images/tavas5.png", aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır." },
+                { numara: "T-06", baslik: "Avar, Hazar ve Peçenek boylarının alt boy tamgaları olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas6.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-07", baslik: "Hazar Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "9 ve 12. Yüzyıl", resim: "images/tavas7.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-08", baslik: "Tatar Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 12. Yüzyıl", resim: "images/tavas8.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-09", baslik: "Boy tamgası olduğu düşünülmektedir.", donem: "11 ve 12. Yüzyıl", resim: "images/tavas9.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-10", baslik: "Avşar boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas10.png", aciklama: "Uğur getiren veya avcı anlamlarına geldiği düşünülmektedir." },
+                { numara: "T-11", baslik: "Kınık boyu tamgası olduğu düşünülmektedir.", donem: "10 ve 11. Yüzyıl", resim: "images/tavas11.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-12", baslik: "Hayat Ağacı Figürü", donem: "11 ve 13. Yüzyıl", resim: "images/tavas12.png", aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır." },
+                { numara: "T-13", baslik: "Kınık boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas13.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-14", baslik: "Afşar ya da Çepni Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas14.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-15", baslik: "Avar,Hazar ve Kızık boylarının tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas15.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-16", baslik: "Çepni boyu veya İğdir boyunun alt boylarına ait bir tamga olduğu düşünülmektedir.", donem: "11 ve 15. Yüzyıl", resim: "images/tavas16.png", aciklama: "Gökyüzü ile yeryüzünü bağladığına inanılmaktadır." },
+                { numara: "T-17", baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği", donem: "11 ve 13. Yüzyıl", resim: "images/tavas17.png", aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir. Ayrıca Orta Asya’dan beri Türklerin bu tarz sembolleri halı, elbise gibi günlük hayatta kullanılan motiflerde de sıkça kullanıldıkları görülmektedir." },
+                { numara: "T-18", baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği", donem: "11 ve 13. Yüzyıl", resim: "images/tavas18.png", aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir." },
+                { numara: "T-19", baslik: "Çepni boyu veya İğdir boyuna ait tamga olduğu düşünülmektedir.", donem: "11 ve 15. Yüzyıl", resim: "images/tavas19.png", aciklama: "Gökyüzünü simgelediği düşünülmektedir. Ayrıca güneş, gök tengri veya gezegenler gibi kutsal unsurlar ile de ilişkilendirilebilir." },
+                { numara: "T-20", baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas20.png", aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir." },
+                { numara: "T-21", baslik: "Kayı boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas21.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-22", baslik: "Kayı boyu Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas22.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-23", baslik: "Yıva Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/tavas23.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "T-24", baslik: "Sepruş(Dilimli başlık)", donem: "11 ve 13. Yüzyıl", resim: "images/tavas24.png", aciklama: "Başlık genellikle ölen kişinin inancını, tarikatını ve bazen de sosyal statüsünü gösterir." }
+            ]
         },
         "cardak": {
-            mainTitle: "Çardak Han Kervansarayı",
+            mainTitle: "Çardak Han",
             yerText: "Çardak Han Kervansarayı(Bina içi duvarı)",
             koleksiyon: [
-                {numara:"T-16", baslik: "Boy tamgası ya da o boya mensup bir ustanın usta işareti olduğu düşünülmektedir.", resim: "../images/cardak1.png", aciklama: "Bir topluluğa ait boy/soya aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti olarak değerlendirilebilir." },
-                {numara:"T-17", baslik: "Boy tamgası ya da usta işareti olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak2.png", aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir." },
-                { numara:"T-19",baslik: "Dodurga Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak3.png", aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir." },
-                { numara:"T-20",baslik: "Büyük Selçuklu Devletine ait sekiz köşeli yıldız tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak4.png", aciklama: "İslam’ın geleneksel inancında yedi cehennem kapısına karşılık sekiz cennet kapısı vardır. Bu yıldızın farklı sekiz köşesi merhamet, şefkat, sabır, sır tutma, cömertlik, sadakat, şükretmek ve doğruluğu simgelemektedir." },
-                { numara:"T-21",baslik: "Kırgız boylarına ait tamga olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak5.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
-                { numara:"T-22",baslik: "Usta işareti ya da boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak6.png", aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir." },
-                { numara:"T-23",baslik: "Iğdir Türk boyuna ait tamga ya da Usta işareti olarak geçmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak7.png", aciklama: "Yukarıda adı geçen Türk boyuna ait kimlik, aidiyet işareti ya da  usta işareti olduğu düşünülmektedir. Çardak Han kervansarayında yapılan incelemelerde en sık rastlanılan işaret olup yapı içindeki birçok duvarda mevcuttur." },
-                { numara:"T-24",baslik: "Karşılıklı İki Balık", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak8.png", aciklama: "Bolluk, bereket ve düzen anlamının olduğu veya hayatın başlangıcı, üreme ve yeniden yaratılış olarak da düşünülebilmektedir. Yeniden yaratılışı ifade ettiğine inanılmaktadır." },
-                {numara:"T-25", baslik: "Boğa figürü olarak düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak9.png", aciklama: "Tarımda toprağın sürülmesinde kullanılan boğa, yaşamın devamlılığında bereketi simgelemektedir.Bu yüzden güç, yiğitlik, kahramanlık ve bereket ifadeleriyle karşımıza çıkmaktadır." }
+                { numara: "C-01", baslik: "Boy tamgası ya da o boya mensup bir ustanın usta işareti olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak1.png", aciklama: "Bir topluluğa ait boy/soya aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti olarak değerlendirilebilir." },
+                { numara: "C-02", baslik: "Boy tamgası ya da usta işareti olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak2.png", aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir." },
+                { numara: "C-03", baslik: "Dodurga Türklerine ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak3.png", aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir." },
+                { numara: "C-04", baslik: "Büyük Selçuklu Devletine ait sekiz köşeli yıldız tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak4.png", aciklama: "İslam’ın geleneksel inancında yedi cehennem kapısına karşılık sekiz cennet kapısı vardır. Bu yıldızın farklı sekiz köşesi merhamet, şefkat, sabır, sır tutma, cömertlik, sadakat, şükretmek ve doğruluğu simgelemektedir." },
+                { numara: "C-05", baslik: "Kırgız boylarına ait tamga olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak5.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "C-06", baslik: "Usta işareti ya da boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak6.png", aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir." },
+                { numara: "C-07", baslik: "İğdir Türk boyuna ait tamga ya da Usta işareti olarak geçmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak7.png", aciklama: "Yukarıda adı geçen Türk boyuna ait kimlik, aidiyet işareti ya da  usta işareti olduğu düşünülmektedir. Çardak Han kervansarayında yapılan incelemelerde en sık rastlanılan işaret olup yapı içindeki birçok duvarda mevcuttur." },
+                { numara: "C-08", baslik: "Karşılıklı İki Balık Figürü", donem: "11 ve 13. Yüzyıl", resim: "images/cardak8.png", aciklama: "Bolluk, bereket ve düzen anlamının olduğu veya hayatın başlangıcı, üreme ve yeniden yaratılış olarak da düşünülebilmektedir. Yeniden yaratılışı ifade ettiğine inanılmaktadır." },
+                { numara: "C-09", baslik: "Boğa figürü olarak düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/cardak9.png", aciklama: "Tarımda toprağın sürülmesinde kullanılan boğa, yaşamın devamlılığında bereketi simgelemektedir. Bu yüzden güç, yiğitlik, kahramanlık ve bereket ifadeleriyle karşımıza çıkmaktadır." }
             ]
         },
         "muze": {
-            mainTitle: "Denizli Kent Müzesi",
+            mainTitle: "Kent Müzesi",
             yerText: "Denizli Kent Müzesi",
             koleksiyon: [
-                { numara:"T-18",baslik: "Saç Örgülü ve Geometrik Süslemeli Tamgalı Taş", donem: "11 ve 13. Yüzyıl", resim: "../images/müze1.png", aciklama: "Saç örgüsü figürü, ölümden sonraki yaşama diğer bir ifadeyle ölümsüz olma isteğiyle ve gelecek nesillere kimliğini hatırlatmak için yapıldığı düşünülmektedir." },
-                { numara:"T-26",baslik: "Tamgalı Taş olarak geçmektedir.", donem: "13 ve 15. Yüzyıl", resim: "../images/müze2.png", aciklama: "Taş üzerindeki figür ya da sembollerin tam olarak anlaşılamaması nedeniyle belli bir bilgiye ulaşılamamıştır." },
-                { numara:"T-27",baslik: "Tamgalı Taş olarak geçmektedir.", donem: "13 ve 15. Yüzyıl", resim: "../images/müze3.png", aciklama: "Ok - yay figürü veya hayat ağacı figürü olduğu düşünülmektedir. Yay; hükümdarlığı, merkezi otoriteyi ve üstün gücü temsil eder.Ok ise hakana bağlılığı temsil eder bunun yanı sıra hayat ağacı figürü ise yaşamın sürekliliğini ifade ettiği bilinmektedir." }
+                { numara: "M-01", baslik: "Saç Örgülü ve Geometrik Süslemeli Tamgalı Taş", donem: "11 ve 13. Yüzyıl", resim: "images/müze1.png", aciklama: "Saç örgüsü figürü, ölümden sonraki yaşama diğer bir ifadeyle ölümsüz olma isteğiyle ve gelecek nesillere kimliğini hatırlatmak için yapıldığı düşünülmektedir." },
+                { numara: "M-02", baslik: "Tamgalı Taş olarak geçmektedir.", donem: "13 ve 15. Yüzyıl", resim: "images/müze2.png", aciklama: "Taş üzerindeki figür ya da sembollerin tam olarak anlaşılamaması nedeniyle belli bir bilgiye ulaşılamamıştır." },
+                { numara: "M-03", baslik: "Tamgalı Taş olarak geçmektedir.", donem: "13 ve 15. Yüzyıl", resim: "images/müze3.png", aciklama: "Ok - yay figürü veya hayat ağacı figürü olduğu düşünülmektedir. Yay; hükümdarlığı, merkezi otoriteyi ve üstün gücü temsil eder. Ok ise hakana bağlılığı temsil eder bunun yanı sıra hayat ağacı figürü ise yaşamın sürekliliğini ifade ettiği bilinmektedir." }
             ]
         },
         "civril": {
-            mainTitle: "Çivril Özdemirci Mezarlığı",
+            mainTitle: "Çivril Özdemirci Mz.",
             yerText: "Çivril Özdemirci Mezarlığı Mezar Taşları",
             koleksiyon: [
-                { numara:"T-34",baslik: "Hun, Avar ve Peçenek boylarının alt boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/civril1.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti." },
-                { numara:"T-38",baslik: "Salgur (salur) boyuna ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/civril2.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti." },
-                { numara:"T-39",baslik: "Salgur (salur) boyuna ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "../images/civril3.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti." }
+                { numara: "Ç-01", baslik: "Hun, Avar ve Peçenek boylarının alt boyu tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/civril1.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "Ç-02", baslik: "Salgur (salur) boyuna ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/civril2.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." },
+                { numara: "Ç-03", baslik: "Salgur (salur) boyuna ait boy tamgası olduğu düşünülmektedir.", donem: "11 ve 13. Yüzyıl", resim: "images/civril3.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir." }
             ]
         }
     };
 
     var locations = [
-        { id: "tavas", name: "Kale-i Tavas Yukarı Mezarlığı ", coords: [37.4362, 28.8518] },
+        { id: "tavas", name: "Kale-i Tavas Yukarı Mezarlığı", coords: [37.4363, 28.8518] },
         { id: "cardak", name: "Çardak Han Kervansarayı", coords: [37.8284, 29.6660] },
         { id: "muze", name: "Denizli Kent Müzesi", coords: [37.7819, 29.0851] },
         { id: "civril", name: "Çivril Özdemirci Mezarlığı", coords: [38.0369, 29.7505] }
     ];
 
-    // --- 4. RENDER VE İKONLAR ---
+    // --- RENDER VE İKONLAR ---
     var copperIcon = new L.Icon({
         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png', 
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -356,7 +326,6 @@
             var htmlContent = `<h2 class="location-header">${data.mainTitle}</h2>`;
 
             data.koleksiyon.forEach(function(item) {
-                // NUMARAYI VERİDEN ÇEKİYORUZ
                 htmlContent += `
                     <div class="tamga-card">
                         <div class="card-header">
