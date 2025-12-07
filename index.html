@@ -12,27 +12,27 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #222; /* Koyu tema arka plan */
-            color: #eee;
+            background-color: #f4f4f4; /* Arka plan açık gri oldu */
+            color: #333; /* Yazılar koyu renk oldu */
         }
 
         header {
-            background-color: #1a1a1a;
+            background-color: #2c3e50; /* Başlık rengi lacivert */
             color: white;
             text-align: center;
             padding: 1rem;
-            border-bottom: 2px solid #444;
+            border-bottom: 4px solid #34495e;
         }
 
         /* HARİTA KUTUSU AYARLARI */
         #map {
-            height: 600px;       /* Yükseklik ŞART! Yoksa harita görünmez. */
-            width: 80%;          /* Genişlik %80 */
-            margin: 30px auto;   /* Ortalamak için */
-            border: 3px solid #555;
+            height: 600px;
+            width: 80%;
+            margin: 30px auto;
+            border: 5px solid #fff; /* Çerçeve beyaz */
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            background-color: #333; /* Harita yüklenene kadar görünecek renk */
+            box-shadow: 0 0 15px rgba(0,0,0,0.2); /* Gölgeyi hafiflettik */
+            background-color: #ddd; 
         }
 
         /* Mobilde harita sığsın diye */
@@ -59,29 +59,26 @@
     <script>
     // --- HARİTA AYARLARI ---
 
-    // 1. Denizli Sınırlarını Kitleme
     var guneyBati = L.latLng(37.000, 28.300);
     var kuzeyDogu = L.latLng(38.500, 30.100);
     var denizliSinirlari = L.latLngBounds(guneyBati, kuzeyDogu);
 
-    // 2. Haritayı Başlat
     var map = L.map('map', {
-        center: [37.7765, 29.0864], // Denizli Merkez
+        center: [37.7765, 29.0864], 
         zoom: 9,
         minZoom: 8,
         maxBounds: denizliSinirlari,
         maxBoundsViscosity: 1.0
     });
 
-    // 3. Harita Altlığı (Koyu Mod)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-        subdomains: 'abcd',
+    // DEĞİŞİKLİK BURADA: Standart OpenStreetMap katmanına geçtik
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
 
 
-    // --- VERİ HAZIRLIĞI ---
+    // --- VERİ VE HEATMAP ---
 
     var mainLocations = [
         { name: "Kale-i Tavas Mezarlığı", coords: [37.568, 29.070], link: "pages/kale-i-tavas.html" },
@@ -90,9 +87,8 @@
         { name: "Çivril Özdemirci Mezarlığı", coords: [38.295, 29.730], link: "pages/civril-ozdemirci.html" }
     ];
 
-    // HEATMAP İÇİN VERİ SİMÜLASYONU
+    // Heatmap Verisi Oluşturma (Simülasyon)
     var heatDataPoints = [];
-
     mainLocations.forEach(function(loc) {
         heatDataPoints.push([loc.coords[0], loc.coords[1], 1.0]); 
         for (let i = 0; i < 50; i++) {
@@ -102,25 +98,22 @@
         }
     });
 
-
-    // --- KATMANLARI EKLE ---
-
-    // 1. Heatmap Katmanı
+    // Heatmap Katmanını Ekle
     var heat = L.heatLayer(heatDataPoints, {
         radius: 25,
         blur: 20,
         maxZoom: 10,
-        gradient: { 0.2: 'blue', 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
+        gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' } // Renkleri açık harita için biraz daha belirgin yaptım
     }).addTo(map);
 
 
-    // 2. Marker Katmanı
+    // İşaretçileri Ekle
     mainLocations.forEach(function(loc) {
         var marker = L.marker(loc.coords).addTo(map);
         marker.bindPopup(`
-            <div style="text-align:center; color:black;">
+            <div style="text-align:center; font-size:14px;">
                 <b>${loc.name}</b><br><br>
-                <a href="${loc.link}" style="background-color:#d35400; color:white; padding:5px 10px; text-decoration:none; border-radius:5px;">İncele</a>
+                <a href="${loc.link}" style="background-color:#2980b9; color:white; padding:6px 12px; text-decoration:none; border-radius:4px;">İncele</a>
             </div>
         `);
     });
