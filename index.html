@@ -400,11 +400,11 @@
         var tamgaSayisi = locationData[loc.id].koleksiyon.length;
         
         // Çoğaltma Katsayısı: Harita daha dolu görünsün diye artırdım (25 -> 50)
-        var carsipan = 50; 
+        var carsipan = 25; 
         
         for(let i=0; i < (tamgaSayisi * carsipan); i++) {
             // Yayılma (Spread): Sayıyı küçülterek (18->12) noktaların daha geniş alana yayılmasını sağladık
-            var spread = 12; 
+            var spread = 18; 
             
             heatPoints.push([
                 loc.coords[0] + (Math.random()-0.5)/spread, 
@@ -415,7 +415,7 @@
     });
 
     L.heatLayer(heatPoints, { 
-        radius: 45,   // Boyut büyütüldü (Daha geniş halkalar)
+        radius: 20,   // Boyut büyütüldü (Daha geniş halkalar)
         blur: 35,     // Bulanıklık artırıldı (Daha yumuşak geçiş)
         maxZoom: 11,  // Yoğunluğun patladığı zoom seviyesi ayarlandı
         
