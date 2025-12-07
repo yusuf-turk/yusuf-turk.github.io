@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları - İnteraktif Harita</title>
+    <title>Denizli Tamgaları - İl Sınırları</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* GENEL AYARLAR */
+        /* --- CSS TASARIM --- */
         body {
             font-family: 'Segoe UI', sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f0f2f5;
-            height: 100vh; /* Sayfa yüksekliği ekran kadar olsun */
+            height: 100vh;
             display: flex;
             flex-direction: column;
         }
@@ -24,70 +24,44 @@
             color: white;
             text-align: center;
             padding: 10px;
-            flex-shrink: 0; /* Header sıkışmasın */
+            flex-shrink: 0;
+            z-index: 1000;
+            position: relative;
         }
 
-        /* ANA EKRAN DÜZENİ (HARİTA + PANEL) */
         .main-container {
-            display: flex; /* Yan yana dizme özelliği */
-            flex: 1;       /* Kalan tüm boşluğu kapla */
-            height: 100%;  /* Yükseklik kilidi */
-            overflow: hidden; /* Taşmaları gizle */
-        }
-
-        /* SOL TARA: HARİTA */
-        #map {
-            flex: 3; /* Ekranın 4'te 3'ü harita olsun */
+            display: flex;
+            flex: 1;
             height: 100%;
+            overflow: hidden;
         }
 
-        /* SAĞ TARAF: BİLGİ PANELİ */
+        #map {
+            flex: 3;
+            height: 100%;
+            z-index: 1;
+        }
+
         #sidebar {
-            flex: 1; /* Ekranın 4'te 1'i panel olsun */
+            flex: 1;
             background-color: white;
             padding: 20px;
-            overflow-y: auto; /* İçerik uzunsa scroll çıksın */
+            overflow-y: auto;
             box-shadow: -2px 0 5px rgba(0,0,0,0.1);
             border-left: 1px solid #ddd;
+            z-index: 2;
         }
 
-        /* Panel İçeriği Tasarımı */
-        .info-title {
-            color: #c0392b;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-        .info-img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-        }
-        .info-text {
-            line-height: 1.6;
-            color: #555;
-            font-size: 0.95rem;
-        }
-        .placeholder-text {
-            text-align: center;
-            color: #999;
-            margin-top: 50%;
-        }
+        /* Panel İçeriği */
+        .info-title { color: #c0392b; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .info-img { width: 100%; height: auto; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; }
+        .info-text { line-height: 1.6; color: #555; font-size: 0.95rem; }
+        .placeholder-text { text-align: center; color: #999; margin-top: 50%; }
 
-        /* MOBİL UYUMLULUK */
         @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column; /* Mobilde alt alta geçsinler */
-            }
-            #map {
-                flex: 1; /* Yarı yarıya */
-                height: 50vh;
-            }
-            #sidebar {
-                flex: 1;
-                height: 50vh;
-            }
+            .main-container { flex-direction: column; }
+            #map { flex: 1; height: 50vh; }
+            #sidebar { flex: 1; height: 50vh; }
         }
     </style>
 
@@ -102,7 +76,6 @@
 
     <div class="main-container">
         <div id="map"></div>
-
         <div id="sidebar">
             <div id="sidebar-content">
                 <div class="placeholder-text">
@@ -114,47 +87,75 @@
     </div>
     
     <script>
-    // --- 1. HARİTA AYARLARI ---
+    // --- 1. HARİTA BAŞLATMA ---
     var map = L.map('map', {
         center: [37.7765, 29.0864],
         zoom: 9,
-        minZoom: 8,
-        zoomControl: false // Zoom butonunu kapat (isteğe bağlı) veya yerini değiştir
+        zoomControl: false
     });
     
-    // Zoom butonunu sağ alta alalım ki panelle çakışmasın
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
+    // Açık renkli harita altlığı
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // --- 2. İÇERİK VERİTABANI (Burası Önemli) ---
-    // Her lokasyonun id'si, başlığı, görseli ve metni burada tutulur.
+
+    // --- 2. DENİZLİ İL SINIRLARINI ÇEKME VE ÇİZME ---
+    
+    // Türkiye GeoJSON verisini Github'dan çekiyoruz
+    fetch('https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json')
+        .then(response => response.json())
+        .then(data => {
+            // Tüm şehirler içinden sadece Denizli'yi buluyoruz
+            var denizliFeature = data.features.find(function(feature) {
+                return feature.properties.name === 'Denizli';
+            });
+
+            if (denizliFeature) {
+                // Sınırları Haritaya Ekle
+                L.geoJSON(denizliFeature, {
+                    style: function (feature) {
+                        return {
+                            color: '#e74c3c', // Sınır Rengi (Kırmızı)
+                            weight: 3,        // Çizgi Kalınlığı
+                            opacity: 1,       // Çizgi Görünürlüğü
+                            fillColor: '#c0392b', // İç Dolgu Rengi
+                            fillOpacity: 0.1  // İç Dolgu Şeffaflığı (Çok silik kırmızı)
+                        };
+                    }
+                }).addTo(map);
+            }
+        })
+        .catch(err => console.error("Harita verisi yüklenirken hata oluştu:", err));
+
+
+    // --- 3. İÇERİK VERİTABANI ---
     var locationData = {
         "tavas": {
             title: "Kale-i Tavas Mezarlığı",
-            img: "https://via.placeholder.com/400x250?text=Kale-i+Tavas+Tamgasi", // Buraya kendi resim yolunu yaz: 'images/kale.jpg'
-            desc: "Kale-i Tavas, Denizli'nin güneybatısında yer alan tarihi bir yerleşimdir. Burada bulunan mezar taşlarında Oğuz boylarına ait, özellikle Kayı ve Avşar boyu tamgalarına rastlanmıştır. Taş işçiliği 14. yüzyıla tarihlenmektedir."
+            img: "https://via.placeholder.com/400x250?text=Kale-i+Tavas", 
+            desc: "Kale-i Tavas, Denizli'nin güneybatısında yer alan tarihi bir yerleşimdir. Kayı ve Avşar boyu tamgaları burada yoğunlaşmıştır."
         },
         "cardak": {
             title: "Çardak Han Kervansarayı",
             img: "https://via.placeholder.com/400x250?text=Cardak+Han",
-            desc: "İpek Yolu üzerinde bulunan Çardak Han, Selçuklu dönemi mimarisinin en güzel örneklerinden biridir. Han duvarlarında taşçı işaretleri olarak da bilinen çeşitli Türk tamgaları tespit edilmiştir. Bu işaretler yapıyı inşa eden ustaların imzası niteliğindedir."
+            desc: "İpek Yolu üzerindeki bu han, Selçuklu taş işçiliğinde kullanılan usta tamgalarını (taşçı işaretleri) barındırır."
         },
         "muze": {
             title: "Denizli Kent Müzesi",
             img: "https://via.placeholder.com/400x250?text=Kent+Muzesi",
-            desc: "Denizli Kent Müzesi'nde sergilenen etnografik eserler, bölgedeki Yörük kültürünün izlerini taşır. Kilimlerde, kap kacaklarda ve silah kabzalarında bölgeye özgü aile ve oba tamgaları detaylıca görülebilir."
+            desc: "Bölge Yörük kültürüne ait etnografik eserlerdeki dokuma ve metal tamgaları burada sergilenmektedir."
         },
         "civril": {
             title: "Çivril Özdemirci Mezarlığı",
             img: "https://via.placeholder.com/400x250?text=Civril+Mezarligi",
-            desc: "Çivril bölgesi, Türklerin Anadolu'ya girişinde önemli bir geçiş noktasıdır. Özdemirci mezarlığındaki balbal tarzı taşlar ve üzerindeki damgalar, İslamiyet öncesi Türk inancının İslami dönemle nasıl harmanlandığını gösteren eşsiz kanıtlardır."
+            desc: "İslamiyet öncesi Türk inancının izlerini taşıyan balbal taşları ve damgalar bu bölgede bulunur."
         }
     };
 
-    // --- 3. LOKASYONLAR VE HEATMAP ---
+    // --- 4. MARKER VE HEATMAP ---
     var locations = [
         { id: "tavas", coords: [37.568, 29.070] },
         { id: "cardak", coords: [37.825, 29.660] },
@@ -162,7 +163,7 @@
         { id: "civril", coords: [38.295, 29.730] }
     ];
 
-    // Heatmap (Görsellik için)
+    // Heatmap Verisi
     var heatPoints = [];
     locations.forEach(loc => {
         heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
@@ -176,22 +177,17 @@
     });
     L.heatLayer(heatPoints, { radius: 25, blur: 20, gradient: {0.4: 'blue', 1: 'red'} }).addTo(map);
 
-    // --- 4. TIKLAMA OLAYI (INTERAKTIVITE) ---
+    // Tıklanabilir Markerlar
     locations.forEach(function(loc) {
         var marker = L.marker(loc.coords).addTo(map);
-
-        // Marker'a tıklandığında çalışacak fonksiyon
         marker.on('click', function() {
-            var data = locationData[loc.id]; // İlgili veriyi çek
-            var sidebar = document.getElementById('sidebar-content'); // Paneli bul
-
-            // Panelin içini HTML olarak doldur
+            var data = locationData[loc.id];
+            var sidebar = document.getElementById('sidebar-content');
             sidebar.innerHTML = `
                 <h2 class="info-title">${data.title}</h2>
                 <img src="${data.img}" class="info-img" alt="${data.title}">
                 <p class="info-text">${data.desc}</p>
-                <br>
-                <small style="color:#888">Koordinat: ${loc.coords[0]}, ${loc.coords[1]}</small>
+                <br><small style="color:#888">Koordinat: ${loc.coords}</small>
             `;
         });
     });
