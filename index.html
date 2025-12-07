@@ -3,43 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları Yoğunluk Haritası</title>
+    <title>Denizli Tamgaları - İnteraktif Harita</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
+        /* GENEL AYARLAR */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4; /* Arka plan açık gri oldu */
-            color: #333; /* Yazılar koyu renk oldu */
+            background-color: #f0f2f5;
+            height: 100vh; /* Sayfa yüksekliği ekran kadar olsun */
+            display: flex;
+            flex-direction: column;
         }
 
         header {
-            background-color: #2c3e50; /* Başlık rengi lacivert */
+            background-color: #2c3e50;
             color: white;
             text-align: center;
-            padding: 1rem;
-            border-bottom: 4px solid #34495e;
+            padding: 10px;
+            flex-shrink: 0; /* Header sıkışmasın */
         }
 
-        /* HARİTA KUTUSU AYARLARI */
+        /* ANA EKRAN DÜZENİ (HARİTA + PANEL) */
+        .main-container {
+            display: flex; /* Yan yana dizme özelliği */
+            flex: 1;       /* Kalan tüm boşluğu kapla */
+            height: 100%;  /* Yükseklik kilidi */
+            overflow: hidden; /* Taşmaları gizle */
+        }
+
+        /* SOL TARA: HARİTA */
         #map {
-            height: 600px;
-            width: 80%;
-            margin: 30px auto;
-            border: 5px solid #fff; /* Çerçeve beyaz */
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2); /* Gölgeyi hafiflettik */
-            background-color: #ddd; 
+            flex: 3; /* Ekranın 4'te 3'ü harita olsun */
+            height: 100%;
         }
 
-        /* Mobilde harita sığsın diye */
+        /* SAĞ TARAF: BİLGİ PANELİ */
+        #sidebar {
+            flex: 1; /* Ekranın 4'te 1'i panel olsun */
+            background-color: white;
+            padding: 20px;
+            overflow-y: auto; /* İçerik uzunsa scroll çıksın */
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            border-left: 1px solid #ddd;
+        }
+
+        /* Panel İçeriği Tasarımı */
+        .info-title {
+            color: #c0392b;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .info-img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+        .info-text {
+            line-height: 1.6;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        .placeholder-text {
+            text-align: center;
+            color: #999;
+            margin-top: 50%;
+        }
+
+        /* MOBİL UYUMLULUK */
         @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column; /* Mobilde alt alta geçsinler */
+            }
             #map {
-                width: 95%;
-                height: 400px;
+                flex: 1; /* Yarı yarıya */
+                height: 50vh;
+            }
+            #sidebar {
+                flex: 1;
+                height: 50vh;
             }
         }
     </style>
@@ -50,72 +97,103 @@
 <body>
 
     <header>
-        <h1>Denizli Tamga Yoğunluk Haritası</h1>
-        <p>Lokasyonları incelemek için haritadaki işaretlere tıklayınız.</p>
+        <h2>Denizli Tamga Atlası</h2>
     </header>
 
-    <div id="map"></div>
+    <div class="main-container">
+        <div id="map"></div>
+
+        <div id="sidebar">
+            <div id="sidebar-content">
+                <div class="placeholder-text">
+                    <h3>Hoşgeldiniz</h3>
+                    <p>Detaylarını görmek için haritadaki<br>işaretli bölgelere tıklayınız.</p>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script>
-    // --- HARİTA AYARLARI ---
-
-    var guneyBati = L.latLng(37.000, 28.300);
-    var kuzeyDogu = L.latLng(38.500, 30.100);
-    var denizliSinirlari = L.latLngBounds(guneyBati, kuzeyDogu);
-
+    // --- 1. HARİTA AYARLARI ---
     var map = L.map('map', {
-        center: [37.7765, 29.0864], 
+        center: [37.7765, 29.0864],
         zoom: 9,
         minZoom: 8,
-        maxBounds: denizliSinirlari,
-        maxBoundsViscosity: 1.0
+        zoomControl: false // Zoom butonunu kapat (isteğe bağlı) veya yerini değiştir
     });
+    
+    // Zoom butonunu sağ alta alalım ki panelle çakışmasın
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // DEĞİŞİKLİK BURADA: Standart OpenStreetMap katmanına geçtik
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
+        attribution: '© OpenStreetMap'
     }).addTo(map);
 
+    // --- 2. İÇERİK VERİTABANI (Burası Önemli) ---
+    // Her lokasyonun id'si, başlığı, görseli ve metni burada tutulur.
+    var locationData = {
+        "tavas": {
+            title: "Kale-i Tavas Mezarlığı",
+            img: "https://via.placeholder.com/400x250?text=Kale-i+Tavas+Tamgasi", // Buraya kendi resim yolunu yaz: 'images/kale.jpg'
+            desc: "Kale-i Tavas, Denizli'nin güneybatısında yer alan tarihi bir yerleşimdir. Burada bulunan mezar taşlarında Oğuz boylarına ait, özellikle Kayı ve Avşar boyu tamgalarına rastlanmıştır. Taş işçiliği 14. yüzyıla tarihlenmektedir."
+        },
+        "cardak": {
+            title: "Çardak Han Kervansarayı",
+            img: "https://via.placeholder.com/400x250?text=Cardak+Han",
+            desc: "İpek Yolu üzerinde bulunan Çardak Han, Selçuklu dönemi mimarisinin en güzel örneklerinden biridir. Han duvarlarında taşçı işaretleri olarak da bilinen çeşitli Türk tamgaları tespit edilmiştir. Bu işaretler yapıyı inşa eden ustaların imzası niteliğindedir."
+        },
+        "muze": {
+            title: "Denizli Kent Müzesi",
+            img: "https://via.placeholder.com/400x250?text=Kent+Muzesi",
+            desc: "Denizli Kent Müzesi'nde sergilenen etnografik eserler, bölgedeki Yörük kültürünün izlerini taşır. Kilimlerde, kap kacaklarda ve silah kabzalarında bölgeye özgü aile ve oba tamgaları detaylıca görülebilir."
+        },
+        "civril": {
+            title: "Çivril Özdemirci Mezarlığı",
+            img: "https://via.placeholder.com/400x250?text=Civril+Mezarligi",
+            desc: "Çivril bölgesi, Türklerin Anadolu'ya girişinde önemli bir geçiş noktasıdır. Özdemirci mezarlığındaki balbal tarzı taşlar ve üzerindeki damgalar, İslamiyet öncesi Türk inancının İslami dönemle nasıl harmanlandığını gösteren eşsiz kanıtlardır."
+        }
+    };
 
-    // --- VERİ VE HEATMAP ---
-
-    var mainLocations = [
-        { name: "Kale-i Tavas Mezarlığı", coords: [37.568, 29.070], link: "pages/kale-i-tavas.html" },
-        { name: "Çardak Han Kervansarayı", coords: [37.825, 29.660], link: "pages/cardak-han.html" },
-        { name: "Denizli Kent Müzesi", coords: [37.774, 29.087], link: "pages/denizli-muze.html" },
-        { name: "Çivril Özdemirci Mezarlığı", coords: [38.295, 29.730], link: "pages/civril-ozdemirci.html" }
+    // --- 3. LOKASYONLAR VE HEATMAP ---
+    var locations = [
+        { id: "tavas", coords: [37.568, 29.070] },
+        { id: "cardak", coords: [37.825, 29.660] },
+        { id: "muze", coords: [37.774, 29.087] },
+        { id: "civril", coords: [38.295, 29.730] }
     ];
 
-    // Heatmap Verisi Oluşturma (Simülasyon)
-    var heatDataPoints = [];
-    mainLocations.forEach(function(loc) {
-        heatDataPoints.push([loc.coords[0], loc.coords[1], 1.0]); 
-        for (let i = 0; i < 50; i++) {
-            var randomLat = loc.coords[0] + (Math.random() - 0.5) / 20; 
-            var randomLng = loc.coords[1] + (Math.random() - 0.5) / 20;
-            heatDataPoints.push([randomLat, randomLng, 0.5]);
+    // Heatmap (Görsellik için)
+    var heatPoints = [];
+    locations.forEach(loc => {
+        heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
+        for(let i=0; i<40; i++) {
+            heatPoints.push([
+                loc.coords[0] + (Math.random()-0.5)/15, 
+                loc.coords[1] + (Math.random()-0.5)/15, 
+                0.6
+            ]);
         }
     });
+    L.heatLayer(heatPoints, { radius: 25, blur: 20, gradient: {0.4: 'blue', 1: 'red'} }).addTo(map);
 
-    // Heatmap Katmanını Ekle
-    var heat = L.heatLayer(heatDataPoints, {
-        radius: 25,
-        blur: 20,
-        maxZoom: 10,
-        gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' } // Renkleri açık harita için biraz daha belirgin yaptım
-    }).addTo(map);
-
-
-    // İşaretçileri Ekle
-    mainLocations.forEach(function(loc) {
+    // --- 4. TIKLAMA OLAYI (INTERAKTIVITE) ---
+    locations.forEach(function(loc) {
         var marker = L.marker(loc.coords).addTo(map);
-        marker.bindPopup(`
-            <div style="text-align:center; font-size:14px;">
-                <b>${loc.name}</b><br><br>
-                <a href="${loc.link}" style="background-color:#2980b9; color:white; padding:6px 12px; text-decoration:none; border-radius:4px;">İncele</a>
-            </div>
-        `);
+
+        // Marker'a tıklandığında çalışacak fonksiyon
+        marker.on('click', function() {
+            var data = locationData[loc.id]; // İlgili veriyi çek
+            var sidebar = document.getElementById('sidebar-content'); // Paneli bul
+
+            // Panelin içini HTML olarak doldur
+            sidebar.innerHTML = `
+                <h2 class="info-title">${data.title}</h2>
+                <img src="${data.img}" class="info-img" alt="${data.title}">
+                <p class="info-text">${data.desc}</p>
+                <br>
+                <small style="color:#888">Koordinat: ${loc.coords[0]}, ${loc.coords[1]}</small>
+            `;
+        });
     });
 
     </script>
