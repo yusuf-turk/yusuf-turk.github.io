@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları - İl Sınırları</title>
+    <title>Denizli Odaklı Harita</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
@@ -26,7 +26,6 @@
             padding: 10px;
             flex-shrink: 0;
             z-index: 1000;
-            position: relative;
         }
 
         .main-container {
@@ -39,7 +38,7 @@
         #map {
             flex: 3;
             height: 100%;
-            z-index: 1;
+            background: #222; /* Harita yüklenirken zemin siyah olsun */
         }
 
         #sidebar {
@@ -49,7 +48,7 @@
             overflow-y: auto;
             box-shadow: -2px 0 5px rgba(0,0,0,0.1);
             border-left: 1px solid #ddd;
-            z-index: 2;
+            z-index: 2000; /* Haritanın üstünde kalsın */
         }
 
         /* Panel İçeriği */
@@ -87,48 +86,65 @@
     </div>
     
     <script>
-    // --- 1. HARİTA BAŞLATMA ---
+    // --- 1. HARİTA KURULUMU ---
     var map = L.map('map', {
         center: [37.7765, 29.0864],
         zoom: 9,
-        zoomControl: false
+        zoomControl: false,
+        minZoom: 8 // Çok uzaklaşmayı engelle
     });
     
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Açık renkli harita altlığı
+    // Harita Katmanı (Zemin)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
 
-    // --- 2. DENİZLİ İL SINIRLARINI ÇEKME VE ÇİZME ---
-    
-    // Türkiye GeoJSON verisini Github'dan çekiyoruz
+    // --- 2. DENİZLİ MASKELEME İŞLEMİ (SİHİRLİ KISIM) ---
     fetch('https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json')
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-            // Tüm şehirler içinden sadece Denizli'yi buluyoruz
-            var denizliFeature = data.features.find(function(feature) {
-                return feature.properties.name === 'Denizli';
-            });
+            // Denizli'yi veriden bul
+            var denizliFeature = data.features.find(f => f.properties.name === 'Denizli');
 
             if (denizliFeature) {
-                // Sınırları Haritaya Ekle
+                // A. Sınır Çizgisi (Kırmızı Çerçeve)
                 L.geoJSON(denizliFeature, {
-                    style: function (feature) {
-                        return {
-                            color: '#e74c3c', // Sınır Rengi (Kırmızı)
-                            weight: 3,        // Çizgi Kalınlığı
-                            opacity: 1,       // Çizgi Görünürlüğü
-                            fillColor: '#c0392b', // İç Dolgu Rengi
-                            fillOpacity: 0.1  // İç Dolgu Şeffaflığı (Çok silik kırmızı)
-                        };
-                    }
+                    style: { color: '#e74c3c', weight: 3, fillOpacity: 0 }
                 }).addTo(map);
+
+                // B. Maskeleme (Dışarıyı Karartma)
+                // Bu işlem biraz matematiksel: Dünyayı kaplayan bir dikdörtgenden Denizli'yi çıkarıyoruz.
+                
+                var worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]]; // Tüm Dünya
+                var denizliCoords = [];
+
+                // GeoJSON koordinatları [Lng, Lat] formatındadır, Leaflet [Lat, Lng] ister.
+                // Bunları ters çevirmemiz lazım.
+                var geometry = denizliFeature.geometry;
+                
+                // Çokgen (Polygon) veya Çoklu Çokgen (MultiPolygon) durumuna göre koordinatları alalım
+                if (geometry.type === 'Polygon') {
+                    denizliCoords = geometry.coordinates[0].map(c => [c[1], c[0]]);
+                } else if (geometry.type === 'MultiPolygon') {
+                    // Denizli parçalı bir yapıdaysa en büyük parçayı alalım veya hepsini birleştirelim
+                    // Basitlik adına ana gövdeyi alıyoruz:
+                    denizliCoords = geometry.coordinates[0][0].map(c => [c[1], c[0]]);
+                }
+
+                // Maske Katmanını Ekle (Siyah, %85 Opaklık)
+                var maskLayer = L.polygon([worldPolygon, denizliCoords], {
+                    color: 'transparent', // Dış sınır rengi yok
+                    fillColor: '#000',    // Dolgu rengi Siyah
+                    fillOpacity: 0.85     // Koyuluk oranı (%85)
+                }).addTo(map);
+
+                // Haritayı tam Denizli'ye sığdır
+                map.fitBounds(L.geoJSON(denizliFeature).getBounds());
             }
-        })
-        .catch(err => console.error("Harita verisi yüklenirken hata oluştu:", err));
+        });
 
 
     // --- 3. İÇERİK VERİTABANI ---
@@ -141,12 +157,12 @@
         "cardak": {
             title: "Çardak Han Kervansarayı",
             img: "https://via.placeholder.com/400x250?text=Cardak+Han",
-            desc: "İpek Yolu üzerindeki bu han, Selçuklu taş işçiliğinde kullanılan usta tamgalarını (taşçı işaretleri) barındırır."
+            desc: "İpek Yolu üzerindeki bu han, Selçuklu taş işçiliğinde kullanılan usta tamgalarını barındırır."
         },
         "muze": {
             title: "Denizli Kent Müzesi",
             img: "https://via.placeholder.com/400x250?text=Kent+Muzesi",
-            desc: "Bölge Yörük kültürüne ait etnografik eserlerdeki dokuma ve metal tamgaları burada sergilenmektedir."
+            desc: "Bölge Yörük kültürüne ait eserlerdeki dokuma ve metal tamgaları burada sergilenmektedir."
         },
         "civril": {
             title: "Çivril Özdemirci Mezarlığı",
@@ -163,7 +179,7 @@
         { id: "civril", coords: [38.295, 29.730] }
     ];
 
-    // Heatmap Verisi
+    // Heatmap
     var heatPoints = [];
     locations.forEach(loc => {
         heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
@@ -177,7 +193,7 @@
     });
     L.heatLayer(heatPoints, { radius: 25, blur: 20, gradient: {0.4: 'blue', 1: 'red'} }).addTo(map);
 
-    // Tıklanabilir Markerlar
+    // Markerlar
     locations.forEach(function(loc) {
         var marker = L.marker(loc.coords).addTo(map);
         marker.on('click', function() {
