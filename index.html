@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Denizli Tamgaları - Tarihsel Atlas</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     
     <style>
@@ -389,46 +388,6 @@
             sidebar.scrollTop = 0;
         });
     });
-
-    // --- HEATMAP ---
-    var heatPoints = [];
-    
-    locations.forEach(loc => {
-        // Merkez noktayı ekle
-        heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
-        
-        var tamgaSayisi = locationData[loc.id].koleksiyon.length;
-        
-        // Çoğaltma Katsayısı: Harita daha dolu görünsün diye artırdım (25 -> 50)
-        var carsipan = 25; 
-        
-        for(let i=0; i < (tamgaSayisi * carsipan); i++) {
-            // Yayılma (Spread): Sayıyı küçülterek (18->12) noktaların daha geniş alana yayılmasını sağladık
-            var spread = 18; 
-            
-            heatPoints.push([
-                loc.coords[0] + (Math.random()-0.5)/spread, 
-                loc.coords[1] + (Math.random()-0.5)/spread, 
-                0.5 // Yan noktaların yoğunluk etkisi
-            ]);
-        }
-    });
-
-    L.heatLayer(heatPoints, { 
-        radius: 20,   // Boyut büyütüldü (Daha geniş halkalar)
-        blur: 35,     // Bulanıklık artırıldı (Daha yumuşak geçiş)
-        maxZoom: 11,  // Yoğunluğun patladığı zoom seviyesi ayarlandı
-        
-        // YENİ RENK PALETİ: Uydu üzerinde "Neon" gibi parlayan renkler seçildi.
-        // Standart kırmızı yerine; Mavi -> Turkuaz -> Yeşil -> Sarı -> Kırmızı geçişi.
-        gradient: {
-            0.1: '#0000ff',  // Lacivert (En dış)
-            0.3: '#00ffff',  // Turkuaz (Cyan) -> Uyduda çok net belli olur
-            0.5: '#00ff00',  // Neon Yeşil
-            0.7: '#ffff00',  // Sarı
-            1.0: '#ff0000'   // Kırmızı (Merkez)
-        } 
-    }).addTo(map);
 
     </script>
 </body>
