@@ -3,32 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları - Kronolojik Atlas</title>
+    <title>Denizli Tamgaları - Tarihsel Atlas</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* --- GENEL TASARIM --- */
+        /* --- 1. GENEL SAYFA TASARIMI --- */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a;
+            background-color: #121212; /* Daha derin siyah */
+            color: #e0e0e0;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
+        /* Header Tasarımı: Altın Sarısı Detaylar */
         header {
-            background-color: #111;
-            color: #eee;
+            background-color: #1a1a1a;
+            color: #d4af37; /* Tarihi Altın Rengi */
             text-align: center;
             padding: 15px;
             flex-shrink: 0;
-            border-bottom: 3px solid #c0392b;
+            border-bottom: 3px solid #d4af37; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
             z-index: 1000;
         }
+        
+        header h2 { margin: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; }
+        header p { margin: 5px 0 0; color: #888; font-size: 0.85rem; }
 
         .main-container {
             display: flex;
@@ -40,93 +46,115 @@
         #map {
             flex: 3;
             height: 100%;
-            background-color: #1a1a1a;
+            background-color: #000;
             z-index: 1;
         }
 
+        /* --- 2. SIDEBAR (YAN PANEL) TASARIMI --- */
         #sidebar {
             flex: 1;
-            background-color: #222;
-            color: #ddd;
+            background-color: #1e1e1e; /* Panel rengi */
             padding: 20px;
             overflow-y: auto;
             box-sizing: border-box;
             border-left: 1px solid #333;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            box-shadow: -5px 0 20px rgba(0,0,0,0.7);
             z-index: 2;
         }
 
         #sidebar-content {
-            padding-bottom: 100px;
+            padding-bottom: 80px;
         }
 
-        /* Scrollbar */
-        #sidebar::-webkit-scrollbar { width: 8px; }
-        #sidebar::-webkit-scrollbar-track { background: #222; }
-        #sidebar::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-        #sidebar::-webkit-scrollbar-thumb:hover { background: #c0392b; }
+        /* Scrollbar (Kaydırma Çubuğu) Özelleştirme */
+        #sidebar::-webkit-scrollbar { width: 6px; }
+        #sidebar::-webkit-scrollbar-track { background: #1e1e1e; }
+        #sidebar::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        #sidebar::-webkit-scrollbar-thumb:hover { background: #d4af37; }
 
-        /* --- KART TASARIMI --- */
+
+        /* --- 3. KART TASARIMI (YENİLENDİ) --- */
         .location-header {
-            color: #e74c3c;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
+            color: #d4af37; /* Altın Başlık */
+            border-bottom: 1px solid #444;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            font-weight: 300;
+            text-align: center;
         }
 
         .tamga-card {
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 25px;
-            position: relative;
+            background-color: #252525; /* Kart zemini */
+            border: 1px solid #333;
+            border-radius: 4px; /* Keskin köşeler yerine hafif yumuşak */
+            padding: 0; /* İç boşluğu kaldırdık, resmi tam oturtacağız */
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .tamga-card:hover {
+            border-color: #555;
+            transform: translateY(-2px);
         }
 
         .tamga-title {
             color: #fff;
-            margin-top: 0;
-            margin-bottom: 8px;
+            background-color: #2c2c2c;
+            margin: 0;
+            padding: 12px 15px;
             font-size: 1.1rem;
-            border-left: 3px solid #e74c3c;
-            padding-left: 10px;
-        }
-
-        .tamga-period {
-            display: inline-block;
-            background-color: #d35400;
-            color: white;
-            font-size: 0.8rem;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            font-weight: 600;
+            border-left: 4px solid #d4af37; /* Sol kenar altın çizgi */
         }
 
         .tamga-img {
             width: 100%;
             height: auto;
-            border-radius: 4px;
-            margin: 5px 0 10px 0;
-            border: 1px solid #555;
+            display: block; /* Alt boşluğu engellemek için */
+            border-bottom: 1px solid #333;
         }
 
-        .tamga-desc {
-            font-size: 0.9rem;
+        /* Bilgi Alanı (Resmin altı) */
+        .card-details {
+            padding: 15px;
+        }
+
+        .detail-row {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
             line-height: 1.5;
-            color: #bbb;
+            border-bottom: 1px dashed #333; /* Satırlar arası ince çizgi */
+            padding-bottom: 8px;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
         }
 
+        .label {
+            color: #d4af37; /* Etiket rengi altın */
+            font-weight: bold;
+            display: block; /* Alt alta dursunlar diye */
+            margin-bottom: 3px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .value {
+            color: #ccc;
+        }
+
+        /* Harita üzerindeki etiketler */
         .map-label {
-            background: transparent;
-            border: none;
-            box-shadow: none;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #d4af37;
+            border-radius: 4px;
             color: #fff;
             font-weight: bold;
-            font-size: 14px;
-            text-shadow: 2px 2px 4px #000;
+            font-size: 12px;
+            padding: 2px 5px;
             margin-top: -10px;
         }
 
@@ -144,15 +172,16 @@
 
     <header>
         <h2>Denizli Tamga Atlası</h2>
-        <p style="margin:5px 0 0; color:#888; font-size:0.9rem;">Bölgedeki tamga yoğunluklarını ve tarihsel dönemlerini inceleyin</p>
+        <p>Anadolu'nun Türkleşme Sürecindeki İzler</p>
     </header>
 
     <div class="main-container">
         <div id="map"></div>
         <div id="sidebar">
             <div id="sidebar-content">
-                <div style="text-align:center; margin-top:50%; color:#666;">
-                    <p>Detayları görmek için haritadaki<br>isimlere veya noktalara tıklayınız.</p>
+                <div style="text-align:center; margin-top:50%; color:#555;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <p>Detayları görüntülemek için<br>haritadaki bir lokasyona tıklayınız.</p>
                 </div>
             </div>
         </div>
@@ -160,7 +189,6 @@
 
     <script>
     // --- 1. HARİTA AYARLARI ---
-    // Genel zoom 9 (Eski hali)
     var map = L.map('map', {
         center: [37.7765, 29.0864],
         zoom: 9, 
@@ -171,30 +199,33 @@
 
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 }).addTo(map);
 
-    // --- 2. DENİZLİ KESİTİ ---
+    // --- 2. DENİZLİ SINIRLARI ---
     fetch('https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json')
         .then(res => res.json())
         .then(data => {
             var denizliFeature = data.features.find(f => f.properties.name === 'Denizli');
             if (denizliFeature) {
-                L.geoJSON(denizliFeature, { style: { color: '#fff', weight: 2, opacity: 0.8, fillOpacity: 0 } }).addTo(map);
+                // Sınır Çizgisi: Artık Altın Sarısı
+                L.geoJSON(denizliFeature, { style: { color: '#d4af37', weight: 2, opacity: 0.8, fillOpacity: 0 } }).addTo(map);
                 
+                // Maskeleme
                 var worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
                 var denizliCoords = [];
                 var geometry = denizliFeature.geometry;
                 if (geometry.type === 'Polygon') denizliCoords = geometry.coordinates[0].map(c => [c[1], c[0]]);
                 else if (geometry.type === 'MultiPolygon') denizliCoords = geometry.coordinates[0][0].map(c => [c[1], c[0]]);
 
-                L.polygon([worldPolygon, denizliCoords], { color: 'transparent', fillColor: '#1a1a1a', fillOpacity: 1 }).addTo(map);
+                L.polygon([worldPolygon, denizliCoords], { color: 'transparent', fillColor: '#121212', fillOpacity: 1 }).addTo(map);
             }
         });
 
 
-    // --- 3. İÇERİK VERİTABANI (SAYILAR GÜNCELLENDİ) ---
+    // --- 3. VERİTABANI ---
+    // Her ana bölgeye "yerText" adında sabit bir yer bilgisi ekledim.
     var locationData = {
         "tavas": {
-            mainTitle: "Kale-i Tavas Yukarı Mezarlığı",
-            // 24 ADET TAMGA VERİSİ
+            mainTitle: "Kale-i Tavas",
+            yerText: "Kale-i Tavas Yukarı Mezarlığı Mezar Taşları",
             koleksiyon: [
                 { baslik: "Kuyistan Tamgası", donem: "12. ve 13. Yüzyıl", resim: "../images/tavas1.png", aciklama: "Sonradan Türkleşen bir Moğol kabilesine ait ve Konurat boyunun tamgası olduğu düşünülmektedir." },
                 { baslik: "Hun ve Avar Benzerliği", donem: "11 ve 13. Yüzyıl", resim: "../images/tavas2.png", aciklama: "Orta Asya’dan Anadolu'ya gelen boyların zamanla alt boylara ayrılıp kendi işaretlerini aldıkları düşünülmektedir." },
@@ -223,8 +254,8 @@
             ]
         },
         "cardak": {
-            mainTitle: "Çardak Han Kervansarayı",
-            // 9 ADET TAMGA VERİSİ
+            mainTitle: "Çardak Han",
+            yerText: "Çardak Han Kervansarayı(Bina içi duvarı)",
             koleksiyon: [
                 { baslik: "Usta İşareti / Boy Tamgası", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak1.png", aciklama: "Binanın inşasında çalışan ustanın kimlik işareti." },
                 { baslik: "Boy Tamgası", donem: "11 ve 13. Yüzyıl", resim: "../images/cardak2.png", aciklama: "Bir boya mensup aitlik işareti." },
@@ -238,8 +269,8 @@
             ]
         },
         "muze": {
-            mainTitle: "Denizli Kent Müzesi",
-            // 3 ADET TAMGA VERİSİ
+            mainTitle: "Kent Müzesi",
+            yerText: "Denizli Kent Müzesi",
             koleksiyon: [
                 { baslik: "Saç Örgülü Tamgalı Taş", donem: "11 ve 13. Yüzyıl", resim: "../images/müze1.png", aciklama: "Ölümden sonraki yaşama ve ölümsüz olma isteğiyle ilişkilendirilir." },
                 { baslik: "Tamgalı Taş", donem: "13 ve 15. Yüzyıl", resim: "../images/müze2.png", aciklama: "Taş üzerindeki figürler tam anlaşılamamıştır." },
@@ -247,8 +278,8 @@
             ]
         },
         "civril": {
-            mainTitle: "Çivril Özdemirci Mezarlığı",
-            // 3 ADET TAMGA VERİSİ
+            mainTitle: "Çivril Özdemirci Mz.",
+            yerText: "Çivril Özdemirci Mezarlığı Mezar Taşları",
             koleksiyon: [
                 { baslik: "Hun/Avar Alt Boy Tamgası", donem: "11 ve 13. Yüzyıl", resim: "../images/civril1.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti." },
                 { baslik: "Salgur (Salur) Tamgası", donem: "11 ve 13. Yüzyıl", resim: "../images/civril2.png", aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti." },
@@ -264,10 +295,11 @@
         { id: "civril", name: "Özdemirci Mz.", coords: [38.295, 29.730] }
     ];
 
-    // --- 4. RENDER VE ANİMASYON ---
+    // --- 4. RENDER VE İKONLAR ---
     
-    var redIcon = new L.Icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    // Altın Rengi Marker İkonu (Tasarıma uysun diye)
+    var goldIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
@@ -276,11 +308,10 @@
     });
 
     locations.forEach(function(loc) {
-        var marker = L.marker(loc.coords, {icon: redIcon}).addTo(map);
+        var marker = L.marker(loc.coords, {icon: goldIcon}).addTo(map);
         marker.bindTooltip(loc.name, { permanent: true, direction: 'top', className: 'map-label', offset: [0, -35] });
         
         marker.on('click', function() {
-            // Tıklayınca 15 Zoom seviyesine uç (Artırıldı)
             map.flyTo(loc.coords, 15, { animate: true, duration: 1.5 });
 
             var data = locationData[loc.id];
@@ -290,12 +321,26 @@
             var htmlContent = `<h2 class="location-header">${data.mainTitle}</h2>`;
 
             data.koleksiyon.forEach(function(item) {
+                // YENİ TASARIM YAPISI
                 htmlContent += `
                     <div class="tamga-card">
                         <h3 class="tamga-title">${item.baslik}</h3>
-                        <span class="tamga-period">📅 ${item.donem}</span>
                         <img src="${item.resim}" class="tamga-img" alt="${item.baslik}">
-                        <p class="tamga-desc">${item.aciklama}</p>
+                        
+                        <div class="card-details">
+                            <div class="detail-row">
+                                <span class="label">TAHMİNİ ZAMAN:</span>
+                                <span class="value">${item.donem}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">YER:</span>
+                                <span class="value">${data.yerText}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">AÇIKLAMA:</span>
+                                <span class="value">${item.aciklama}</span>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -306,39 +351,26 @@
     });
 
     // --- HEATMAP (DİNAMİK YOĞUNLUK) ---
-    // Artık rastgele değil, o bölgedeki tamga sayısına göre yoğunluk oluşturuyoruz.
-    // Tavas (24) çok yoğun yanacak, Çivril (3) daha az yanacak.
     var heatPoints = [];
     
     locations.forEach(loc => {
-        // Merkez her zaman en sıcak nokta (1.0)
         heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
-        
-        // Veritabanındaki tamga sayısını al
         var tamgaSayisi = locationData[loc.id].koleksiyon.length;
-        
-        // Tamga sayısına göre etrafa yayılacak "sanal ısı noktaları" oluştur
-        // Her tamga için 25 tane sanal nokta ekleyelim ki haritada güzel görünsün
         var carsipan = 25; 
         
         for(let i=0; i < (tamgaSayisi * carsipan); i++) {
-            // Rastgele dağılım (Spread)
-            // Tavas çok kalabalık olduğu için biraz daha geniş alana yayılabilir
             var spread = 18; 
-            
             heatPoints.push([
                 loc.coords[0] + (Math.random()-0.5)/spread, 
                 loc.coords[1] + (Math.random()-0.5)/spread, 
-                0.6 // Yan noktaların sıcaklığı
+                0.6 
             ]);
         }
     });
 
-    // Heatmap Görselliğini Artırma
     L.heatLayer(heatPoints, { 
-        radius: 30, // Nokta büyüklüğü
-        blur: 25,   // Bulanıklık
-        // Renk skalası: Sarı -> Turuncu -> Kırmızı (Uydu üstünde en iyi görünen)
+        radius: 30, 
+        blur: 25, 
         gradient: {0.3: 'yellow', 0.6: 'orange', 1: 'red'} 
     }).addTo(map);
 
