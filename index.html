@@ -14,10 +14,10 @@
             margin: 0;
             padding: 0;
             background-color: #1a1a1a;
-            height: 100vh;
+            height: 100vh; /* Ekran yüksekliği kadar olsun */
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* Sayfanın kendisi asla kaymasın */
         }
 
         header {
@@ -25,15 +25,16 @@
             color: #eee;
             text-align: center;
             padding: 15px;
-            flex-shrink: 0;
+            flex-shrink: 0; /* Header sıkışmasın */
             border-bottom: 3px solid #c0392b;
             z-index: 1000;
         }
 
         .main-container {
             display: flex;
-            flex: 1;
-            height: 100%;
+            flex: 1; /* Kalan tüm boşluğu kapla */
+            height: 100%; /* Yükseklik kilidi */
+            overflow: hidden; /* Taşmayı engelle */
             position: relative;
         }
 
@@ -49,10 +50,31 @@
             background-color: #222;
             color: #ddd;
             padding: 20px;
-            overflow-y: auto;
+            
+            /* --- DÜZELTME BURADA --- */
+            height: 100%; /* Ebeveynin yüksekliğini al */
+            overflow-y: auto; /* Dikey kaydırmayı aç */
+            box-sizing: border-box; /* Padding dahil hesapla */
+            padding-bottom: 80px; /* En alttaki kartın rahat görünmesi için ekstra boşluk */
+            
             border-left: 1px solid #333;
             box-shadow: -5px 0 15px rgba(0,0,0,0.5);
             z-index: 2;
+        }
+
+        /* Scrollbar Tasarımı (Opsiyonel: Daha şık görünüm için) */
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        #sidebar::-webkit-scrollbar-track {
+            background: #222; 
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #444; 
+            border-radius: 4px;
+        }
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: #c0392b; 
         }
 
         /* --- KART VE DÖNEM TASARIMI --- */
@@ -82,10 +104,9 @@
             padding-left: 10px;
         }
 
-        /* YENİ EKLENEN DÖNEM ETİKETİ STİLİ */
         .tamga-period {
             display: inline-block;
-            background-color: #d35400; /* Turuncu-Kahve tonu */
+            background-color: #d35400;
             color: white;
             font-size: 0.8rem;
             font-weight: bold;
@@ -109,7 +130,6 @@
             color: #bbb;
         }
 
-        /* Harita Etiketleri */
         .map-label {
             background: transparent;
             border: none;
@@ -181,154 +201,154 @@
         });
 
 
-    // --- İÇERİK VERİTABANI (DÖNEM ALANI EKLENDİ) ---
+    // --- İÇERİK VERİTABANI ---
     var locationData = {
         "tavas": {
             mainTitle: "Kale-i Tavas Yukarı Mezarlığı",
             koleksiyon: [
                 {
                     baslik: "Kuyistan Tamgası",
-                    donem: "12. ve 13. Yüzyıl", // YENİ ALAN
+                    donem: "12. ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Kayi+Tamgasi",
                     aciklama: "Sonradan Türkleşen bir Moğol kabilesine ait ve Konurat boyunun tamgası olduğu düşünülmektedir."
                 },
                 {
-                    baslik: "Hun ve Avar boylarının, alt boylarının tamgalarına benzemektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Hun ve Avar boylarının tamgalarına benzerlik",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Avsar+Tamgasi",
                     aciklama: "Orta Asya’dan Anadolu'ya gelen boyların zamanla alt boylara ayrılıp kendi işaretlerini aldıkları düşünülmektedir."
                 },
                 {
-                    baslik: "Hazar Türklerine ait boy tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 12. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir. "
-                },
-                {
-                    baslik: "Hayat Ağacı Figürü",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır.  "
-                },
-                {
-                    baslik: "Hayat Ağacı Figürü",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır.  "
-                },
-                {
-                    baslik: "Avar, Hazar ve Peçenek boylarının alt boy tamgaları olduğu düşünülmektedir. ",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
-                },
-                {
-                    baslik: "Hazar Türklerine ait boy tamgası olduğu düşünülmektedir.",
-                    donem: "9 ve 12. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
-                },
-                {
-                    baslik: "Tatar Türklerine ait boy tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 12. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
-                },
-                {
-                    baslik: "Boy tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 12. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
-                },
-                {
-                    baslik: "Avşar boyu tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
-                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Uğur getiren veya avcı anlamlarına geldiği düşünülmektedir."
-                },
-                {
-                    baslik: "Kınık boyu tamgası olduğu düşünülmektedir.",
-                    donem: "10 ve 11. Yüzyıl", // YENİ ALAN
+                    baslik: "Hazar Türklerine ait boy tamgası",
+                    donem: "11 ve 12. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
                     aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
                     baslik: "Hayat Ağacı Figürü",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
                     aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır."
                 },
                 {
-                    baslik: "Kınık boyu tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Hayat Ağacı Figürü (Varyasyon)",
+                    donem: "11 ve 13. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır."
+                },
+                {
+                    baslik: "Avar, Hazar ve Peçenek boylarının alt boy tamgaları",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
                     aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Afşar ya da Çepni Türklerine ait boy tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Hazar Türklerine ait boy tamgası",
+                    donem: "9 ve 12. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
                     aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Avar,Hazar ve Kızık boylarının tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Tatar Türklerine ait boy tamgası",
+                    donem: "11 ve 12. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
                     aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Çepni boyu veya İğdir boyunun alt boylarına ait bir tamga olduğu düşünülmektedir. ",
-                    donem: "11 ve 15. Yüzyıl", // YENİ ALAN
+                    baslik: "Boy tamgası (Belirsiz)",
+                    donem: "11 ve 12. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                },
+                {
+                    baslik: "Avşar boyu tamgası",
+                    donem: "11 ve 13. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Uğur getiren veya avcı anlamlarına geldiği düşünülmektedir."
+                },
+                {
+                    baslik: "Kınık boyu tamgası",
+                    donem: "10 ve 11. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                },
+                {
+                    baslik: "Hayat Ağacı Figürü",
+                    donem: "11 ve 13. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Şamanizm inancına sahip olanların bu figürü gökyüzüne ulaşmak için bir merdiven olarak kullandıklarına inanılmaktadır."
+                },
+                {
+                    baslik: "Kınık boyu tamgası",
+                    donem: "11 ve 13. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                },
+                {
+                    baslik: "Afşar ya da Çepni Türklerine ait boy tamgası",
+                    donem: "11 ve 13. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                },
+                {
+                    baslik: "Avar, Hazar ve Kızık boylarının tamgası",
+                    donem: "11 ve 13. Yüzyıl",
+                    resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                },
+                {
+                    baslik: "Çepni boyu veya İğdir boyu (alt boy)",
+                    donem: "11 ve 15. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
                     aciklama: "Gökyüzü ile yeryüzünü bağladığına inanılmaktadır."
                 },
                 {
-                    baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Geometrik Tamga (Daire/Üçgen)",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir. Ayrıca Orta Asya’dan beri Türklerin bu tarz sembolleri halı, elbise gibi günlük hayatta kullanılan motiflerde de sıkça kullanıldıkları görülmektedir. "
+                    aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir."
                 },
                 {
-                    baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Geometrik Tamga (Varyasyon)",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik  şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir. "
+                    aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir."
                 },
                 {
-                    baslik: "Çepni boyu veya İğdir boyuna ait tamga olduğu düşünülmektedir. ",
-                    donem: "11 ve 15. Yüzyıl", // YENİ ALAN
+                    baslik: "Çepni boyu veya İğdir boyuna ait tamga",
+                    donem: "11 ve 15. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Gökyüzünü simgelediği  düşünülmektedir. Ayrıca güneş, gök tengri veya gezegenler gibi kutsal unsurlar ile de ilişkilendirilebilir."
+                    aciklama: "Gökyüzünü simgelediği düşünülmektedir. Ayrıca güneş, gök tengri veya gezegenler gibi kutsal unsurlar ile de ilişkilendirilebilir."
                 },
                 {
-                    baslik: "Sadece daire, daire-eşkenar dörtgen veya daire-üçgen tasvirlerinin birlikte kullanıldığı tamga örneği. ",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Geometrik Tamga (Daire/Eşkenar)",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir. "
+                    aciklama: "Orta Asya’dan beri Türklerde daire, üçgen, dörtgen gibi geometrik şekillerin çeşitli sembol ve tamga işareti olarak kullanıldığı bilinmektedir."
                 },
                 {
-                    baslik: "Kayı boyu tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Kayı boyu tamgası",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir. "
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Kayı boyu Türklerine ait boy tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Kayı boyu Türklerine ait boy tamgası",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir. "
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Yıva Türklerine ait boy tamgası olduğu düşünülmektedir.",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Yıva Türklerine ait boy tamgası",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir. "
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Sepruş(Dilimli başlık)",
-                    donem: "11 ve 13. Yüzyıl", // YENİ ALAN
+                    baslik: "Sepruş (Dilimli başlık)",
+                    donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/555/eee?text=Savasci+Figuru",
-                    aciklama: "Başlık genellikle ölen kişinin inancını,tarikatını ve bazen de sosyal statüsünü gösterir."
+                    aciklama: "Başlık genellikle ölen kişinin inancını, tarikatını ve bazen de sosyal statüsünü gösterir."
                 }
             ]
         },
@@ -336,58 +356,58 @@
             mainTitle: "Çardak Han Kervansarayı",
             koleksiyon: [
                 {
-                    baslik: "Boy tamgası ya da o boya mensup bir ustanın usta işareti olduğu düşünülmektedir.",
+                    baslik: "Boy tamgası / Usta İşareti",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Tasci+Isareti",
-                    aciklama: "Bir topluluğa ait boy/soya aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti olarak değerlendirilebilir. "
+                    aciklama: "Bir topluluğa ait boy/soya aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti."
                 },
                 {
-                    baslik: "Boy tamgası ya da usta işareti olduğu düşünülmektedir.",
+                    baslik: "Boy tamgası / Usta İşareti",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir."
+                    aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti."
                 },
                 {
-                    baslik: "Dodurga Türklerine ait boy tamgası olduğu düşünülmektedir.",
+                    baslik: "Dodurga Türklerine ait boy tamgası",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir."
+                    aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti."
                 },
                 {
-                    baslik: "Büyük Selçuklu Devletine ait sekiz köşeli yıldız tamgası olduğu düşünülmektedir.",
+                    baslik: "Büyük Selçuklu (Sekiz Köşeli Yıldız)",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "İslam’ın geleneksel inancında yedi cehennem kapısına karşılık sekiz cennet kapısı vardır. Bu yıldızın farklı sekiz köşesi merhamet, şefkat, sabır, sır tutma, cömertlik, sadakat, şükretmek ve doğruluğu simgelemektedir. "
+                    aciklama: "Merhamet, şefkat, sabır, sır tutma, cömertlik, sadakat, şükretmek ve doğruluğu simgelemektedir."
                 },
                 {
-                    baslik: "Kırgız boylarına ait tamga olduğu düşünülmektedir.",
+                    baslik: "Kırgız boylarına ait tamga",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir.  "
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
                 },
                 {
-                    baslik: "Usta işareti ya da boy tamgası olduğu düşünülmektedir.",
+                    baslik: "Usta işareti / Boy tamgası",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti veya usta işareti olarak değerlendirilebilir. "
+                    aciklama: "Bir boya mensup aitlik işareti ya da binanın inşasında çalışan ustanın kimlik işareti."
                 },
                 {
-                    baslik: "İğdir Türk boyuna ait tamga ya da Usta işareti olarak geçmektedir.",
+                    baslik: "İğdir Türk boyuna ait tamga",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Yukarıda adı geçen Türk boyuna ait kimlik, aidiyet işareti ya da  usta işareti olduğu düşünülmektedir. Çardak Han kervansarayında yapılan incelemelerde en sık rastlanılan işaret olup yapı içindeki birçok duvarda mevcuttur. "
+                    aciklama: "Çardak Han kervansarayında en sık rastlanılan işaret olup yapı içindeki birçok duvarda mevcuttur."
                 },
                 {
                     baslik: "Karşılıklı İki Balık Figürü",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Bolluk, bereket ve düzen anlamının olduğu veya hayatın başlangıcı, üreme ve yeniden yaratılış olarak da düşünülebilmektedir. Yeniden yaratılışı ifade ettiğine inanılmaktadır. "
+                    aciklama: "Bolluk, bereket ve yeniden yaratılışı ifade ettiğine inanılmaktadır."
                 },
                 {
-                    baslik: "Boğa figürü olarak düşünülmektedir.",
+                    baslik: "Boğa figürü",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/444/eee?text=Duvar+Suslemesi",
-                    aciklama: "Tarımda toprağın sürülmesinde kullanılan boğa, yaşamın devamlılığında bereketi simgelemektedir.Bu yüzden güç, yiğitlik, kahramanlık ve bereket ifadeleriyle karşımıza çıkmaktadır. "
+                    aciklama: "Güç, yiğitlik, kahramanlık ve bereket ifadeleriyle karşımıza çıkmaktadır."
                 }
             ]
         },
@@ -398,19 +418,19 @@
                     baslik: "Saç Örgülü ve Geometrik Süslemeli Tamgalı Taş",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Kilim+Motifi",
-                    aciklama: "Saç örgüsü figürü, ölümden sonraki yaşama diğer bir ifadeyle ölümsüz olma isteğiyle ve gelecek nesillere kimliğini hatırlatmak için yapıldığı düşünülmektedir."
+                    aciklama: "Ölümden sonraki yaşama ve ölümsüz olma isteğiyle ilişkilendirilir."
                 },
                 {
-                    baslik: "Tamgalı Taş olarak geçmektedir.",
+                    baslik: "Tamgalı Taş",
                     donem: "13 ve 15. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Kilim+Motifi",
-                    aciklama: "Taş üzerindeki figür ya da sembollerin tam olarak anlaşılamaması nedeniyle belli bir bilgiye ulaşılamamıştır. "
+                    aciklama: "Taş üzerindeki figürler tam anlaşılamamıştır."
                 },
                 {
-                    baslik: "Tamgalı Taş olarak geçmektedir.",
+                    baslik: "Tamgalı Taş (Ok-Yay)",
                     donem: "13 ve 15. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Kilim+Motifi",
-                    aciklama: "Ok - yay figürü veya hayat ağacı figürü olduğu düşünülmektedir. Yay; hükümdarlığı, merkezi otoriteyi ve üstün gücü temsil eder.Ok ise hakana bağlılığı temsil eder bunun yanı sıra hayat ağacı figürü ise yaşamın sürekliliğini ifade ettiği bilinmektedir."
+                    aciklama: "Yay hükümdarlığı, Ok ise hakana bağlılığı temsil eder."
                 }
             ]
         },
@@ -418,22 +438,22 @@
             mainTitle: "Çivril Özdemirci Mezarlığı",
             koleksiyon: [
                 {
-                    baslik: "Hun, Avar ve Peçenek boylarının alt boyu tamgası olduğu düşünülmektedir.",
+                    baslik: "Hun, Avar ve Peçenek alt boy tamgası",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Balbal+Tasi",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti."
                 },
                 {
-                    baslik: "Salgur (salur) boyuna ait boy tamgası olduğu düşünülmektedir.",
+                    baslik: "Salgur (Salur) boyu tamgası",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Balbal+Tasi",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti."
                 },
                 {
-                    baslik: "Salgur (salur) boyuna ait boy tamgası olduğu düşünülmektedir.",
+                    baslik: "Salgur (Salur) boyu tamgası (Varyasyon)",
                     donem: "11 ve 13. Yüzyıl",
                     resim: "https://via.placeholder.com/600x400.png/333/eee?text=Balbal+Tasi",
-                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti olarak değerlendirilmektedir."
+                    aciklama: "Bir boya ait kimlik, aidiyet ya da mülkiyet işareti."
                 }
             ]
         }
@@ -463,25 +483,24 @@
         
         marker.on('click', function() {
             var data = locationData[loc.id];
-            var sidebar = document.getElementById('sidebar-content');
+            var sidebar = document.getElementById('sidebar'); // sidebar-content yerine direkt sidebar'ı scroll ettireceğiz
+            var sidebarContent = document.getElementById('sidebar-content');
             
             var htmlContent = `<h2 class="location-header">${data.mainTitle}</h2>`;
 
             data.koleksiyon.forEach(function(item) {
-                // Burada item.donem bilgisini turuncu bir etiket içinde yazdırıyoruz
                 htmlContent += `
                     <div class="tamga-card">
                         <h3 class="tamga-title">${item.baslik}</h3>
-                        
                         <span class="tamga-period">📅 ${item.donem}</span>
-                        
                         <img src="${item.resim}" class="tamga-img" alt="${item.baslik}">
                         <p class="tamga-desc">${item.aciklama}</p>
                     </div>
                 `;
             });
 
-            sidebar.innerHTML = htmlContent;
+            sidebarContent.innerHTML = htmlContent;
+            sidebar.scrollTop = 0; // Her yeni tıklamada en üste çık
         });
     });
 
