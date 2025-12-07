@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denizli Tamgaları - Uydu Atlası</title>
+    <title>Denizli Tamgaları - Özel Kesit Harita</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        /* --- CSS TASARIM --- */
+        /* --- GENEL TASARIM (Koyu Tema) --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #111; /* Uydu temasına uygun koyu arka plan */
+            background-color: #1a1a1a; /* Sayfa arka planı */
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -21,18 +21,14 @@
         }
 
         header {
-            background-color: #1a1a1a; /* Daha koyu başlık */
+            background-color: #111;
             color: #eee;
             text-align: center;
             padding: 15px;
             flex-shrink: 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            border-bottom: 3px solid #c0392b;
             z-index: 1000;
-            border-bottom: 2px solid #e74c3c; /* Kırmızı bir alt çizgi estetik katar */
         }
-
-        h2 { margin: 0; font-size: 1.5rem; }
-        p.subtitle { margin: 5px 0 0; font-size: 0.9rem; opacity: 0.8; color: #ccc; }
 
         .main-container {
             display: flex;
@@ -41,62 +37,41 @@
             position: relative;
         }
 
-        /* Harita Alanı */
         #map {
             flex: 3;
             height: 100%;
-            background-color: #000;
+            background-color: #1a1a1a; /* Harita yüklenirken zemin rengi (Body ile aynı olmalı) */
             z-index: 1;
         }
 
-        /* Yan Panel (Sidebar) */
         #sidebar {
             flex: 1;
-            background-color: #222; /* Koyu tema panel */
-            color: #eee;
+            background-color: #222;
+            color: #ddd;
             padding: 25px;
             overflow-y: auto;
-            box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+            border-left: 1px solid #333;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
             z-index: 2;
-            border-left: 1px solid #444;
         }
 
-        /* Sidebar İçerik Stilleri (Koyu Tema Uyumlu) */
-        .info-title {
-            color: #e74c3c; /* Başlıklar kırmızı */
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
-            margin-top: 0;
+        /* --- HARİTA ÜZERİNDEKİ İSİM ETİKETLERİ --- */
+        .map-label {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            margin-top: -10px; /* Yazıyı biraz yukarı al */
         }
-        .info-img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 2px solid #444;
-        }
-        .info-text {
-            line-height: 1.6;
-            color: #ccc; /* Metin rengi açık gri */
-            font-size: 1rem;
-        }
-        .placeholder-text {
-            text-align: center;
-            color: #777;
-            margin-top: 50%;
-            font-style: italic;
-        }
-        .coord-text {
-            display: block;
-            margin-top: 20px;
-            font-size: 0.85rem;
-            color: #aaa;
-            background: #333;
-            padding: 8px;
-            border-radius: 4px;
-            text-align: center;
-            border: 1px solid #555;
-        }
+
+        /* Sidebar İçerik Stilleri */
+        .info-title { color: #e74c3c; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .info-img { width: 100%; height: auto; border-radius: 6px; margin-bottom: 15px; border: 2px solid #444; }
+        .info-text { line-height: 1.6; color: #ccc; }
+        .coord-text { display: block; margin-top: 15px; font-size: 0.8rem; color: #888; text-align: right; }
 
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
@@ -112,155 +87,160 @@
 
     <header>
         <h2>Denizli Tamga Atlası</h2>
-        <p class="subtitle">Uydu görüntüleri üzerinde tarihsel işaretlerin yoğunluk haritası</p>
+        <p style="margin:5px 0 0; color:#888; font-size:0.9rem;">Bölgedeki tamga yoğunluklarını ve lokasyonları gösteren interaktif harita</p>
     </header>
 
     <div class="main-container">
         <div id="map"></div>
-        
         <div id="sidebar">
             <div id="sidebar-content">
-                <div class="placeholder-text">
-                    <p>Detaylı bilgi almak için harita üzerindeki<br>işaretli (📍) konumlara tıklayınız.</p>
+                <div style="text-align:center; margin-top:50%; color:#666;">
+                    <p>Detayları görmek için haritadaki<br>isimlere veya noktalara tıklayınız.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-    // --- 1. SADECE UYDU GÖRÜNTÜSÜ ---
-    // Diğer tüm katmanları sildik, sadece bu kaldı.
-    var uydu = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles © Esri'
-    });
-
-    // --- 2. HARİTAYI BAŞLATMA ---
+    // --- 1. HARİTA KURULUMU ---
     var map = L.map('map', {
         center: [37.7765, 29.0864],
         zoom: 9,
         zoomControl: false,
-        layers: [uydu] // Sadece uydu katmanıyla başlıyor
-        // minZoom ayarını aşağıda dinamik olarak yapacağız
+        attributionControl: false // Sağ alttaki yazıları temizledim (Daha şık durması için)
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    // Katman kontrol menüsü (L.control.layers) tamamen kaldırıldı.
+
+    // Uydu Görüntüsü
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18
+    }).addTo(map);
 
 
-    // --- 3. DENİZLİ SINIRLARI VE KISITLAMA (Yeni Yöntem) ---
+    // --- 2. DENİZLİ KESİP ÇIKARMA (SOLID MASK) ---
     fetch('https://raw.githubusercontent.com/cihadturhan/tr-geojson/master/geo/tr-cities-utf8.json')
         .then(res => res.json())
         .then(data => {
             var denizliFeature = data.features.find(f => f.properties.name === 'Denizli');
 
             if (denizliFeature) {
-                // A. GeoJSON Katmanını Oluştur
-                var boundaryLayer = L.geoJSON(denizliFeature, {
-                    style: {
-                        color: '#e74c3c', // Parlak kırmızı
-                        weight: 4,        // Çizgi daha kalın (uydu üzerinde net görünsün)
-                        fillOpacity: 0.1, // İçini çok hafif kırmızı yap (alanı hissettir)
-                        fillColor: '#e74c3c'
-                    }
+                // A. Sınır Çizgisi (İnce ve Zarif)
+                L.geoJSON(denizliFeature, {
+                    style: { color: '#fff', weight: 2, opacity: 0.8, fillOpacity: 0 }
                 }).addTo(map);
 
-                // B. Harita Sınırlarını Kitleme (Maskeleme yerine)
-                var denizliBounds = boundaryLayer.getBounds(); // Denizli'nin sınır kutusunu al
-                var paddedBounds = denizliBounds.pad(0.2);     // %20 kadar kenar boşluğu bırak
-
-                // Haritayı bu sınırlara kitle. Kullanıcı dışarı sürükleyemez.
-                map.setMaxBounds(paddedBounds);
-
-                // Görünümü Denizli'ye sığdır
-                map.fitBounds(denizliBounds);
+                // B. KESME İŞLEMİ (Dışarıyı KATI RENK ile kapatma)
+                var worldPolygon = [[90, -180], [90, 180], [-90, 180], [-90, -180]];
+                var denizliCoords = [];
                 
-                // Çok fazla uzaklaşmayı engelle (Denizli ekrandan taşmasın)
-                map.setMinZoom(map.getBoundsZoom(paddedBounds));
+                var geometry = denizliFeature.geometry;
+                if (geometry.type === 'Polygon') {
+                    denizliCoords = geometry.coordinates[0].map(c => [c[1], c[0]]);
+                } else if (geometry.type === 'MultiPolygon') {
+                    denizliCoords = geometry.coordinates[0][0].map(c => [c[1], c[0]]);
+                }
+
+                // Maske katmanı: Rengi sayfa arka planıyla (#1a1a1a) AYNI yapıyoruz.
+                // Opaklığı 1 (Tam katı) yapıyoruz.
+                // Böylece Denizli harici her yer "yokmuş" gibi görünüyor.
+                L.polygon([worldPolygon, denizliCoords], {
+                    color: 'transparent',
+                    fillColor: '#1a1a1a', // Body background ile aynı renk!
+                    fillOpacity: 1        // %100 Görünür (Arkayı göstermez)
+                }).addTo(map);
+
+                map.fitBounds(L.geoJSON(denizliFeature).getBounds());
             }
-        })
-        .catch(err => console.log("GeoJSON yüklenemedi:", err));
+        });
 
 
-    // --- 4. İÇERİK VERİLERİ ---
-    // (Not: Görüntüler için hala placeholder var, kendi resimlerinle değiştirmelisin)
+    // --- 3. VERİLER ---
     var locationData = {
         "tavas": {
             title: "Kale-i Tavas Mezarlığı",
-            img: "https://via.placeholder.com/600x400.png/333/eee?text=Kale-i+Tavas+Uydu", 
+            img: "https://via.placeholder.com/600x400.png/333/eee?text=Kale-i+Tavas",
             desc: "Kale-i Tavas, Denizli'nin güneybatısında yer alan tarihi bir yerleşimdir. Burada bulunan mezar taşlarında Oğuz boylarına ait, özellikle Kayı ve Avşar boyu tamgalarına rastlanmıştır."
         },
         "cardak": {
             title: "Çardak Han Kervansarayı",
             img: "https://via.placeholder.com/600x400.png/333/eee?text=Cardak+Han",
-            desc: "İpek Yolu üzerinde bulunan Çardak Han, Selçuklu dönemi mimarisinin en güzel örneklerinden biridir. Han duvarlarında taşçı işaretleri olarak bilinen Türk tamgaları tespit edilmiştir."
+            desc: "İpek Yolu üzerinde bulunan Çardak Han, Selçuklu dönemi mimarisinin en güzel örneklerinden biridir. Han duvarlarında taşçı işaretleri olarak bilinen tamgalar mevcuttur."
         },
         "muze": {
             title: "Denizli Kent Müzesi",
             img: "https://via.placeholder.com/600x400.png/333/eee?text=Kent+Muzesi",
-            desc: "Denizli Kent Müzesi'nde sergilenen etnografik eserler, bölgedeki Yörük kültürünün izlerini taşır. Kilim ve metal objelerde oba tamgaları görülebilir."
+            desc: "Denizli Kent Müzesi'nde sergilenen etnografik eserler, bölgedeki Yörük kültürünün izlerini taşır. Dokumalarda oba tamgaları görülebilir."
         },
         "civril": {
             title: "Çivril Özdemirci Mezarlığı",
-            img: "https://via.placeholder.com/600x400.png/333/eee?text=Ozdemirci+Mezarligi",
-            desc: "Çivril bölgesi, Türklerin Anadolu'ya girişinde önemli bir geçiş noktasıdır. Özdemirci mezarlığındaki balbal tarzı taşlar İslamiyet öncesi inancın izlerini taşır."
+            img: "https://via.placeholder.com/600x400.png/333/eee?text=Ozdemirci",
+            desc: "Çivril bölgesi, Türklerin Anadolu'ya girişinde önemli bir geçiş noktasıdır. Özdemirci mezarlığındaki balbal taşları İslamiyet öncesi inancın izlerini taşır."
         }
     };
 
-    // --- 5. LOKASYONLAR VE ISI HARİTASI ---
     var locations = [
-        { id: "tavas", coords: [37.568, 29.070] },
-        { id: "cardak", coords: [37.825, 29.660] },
-        { id: "muze", coords: [37.774, 29.087] },
-        { id: "civril", coords: [38.295, 29.730] }
+        { id: "tavas", name: "Kale-i Tavas", coords: [37.568, 29.070] },
+        { id: "cardak", name: "Çardak Han", coords: [37.825, 29.660] },
+        { id: "muze", name: "Kent Müzesi", coords: [37.774, 29.087] },
+        { id: "civril", name: "Özdemirci Mz.", coords: [38.295, 29.730] }
     ];
 
-    // Heatmap (Yoğunluk) - Renkleri uydu üzerinde patlayacak şekilde güncelledim
+
+    // --- 4. MARKERLAR VE ETİKETLER ---
+    
+    // Kırmızı İkon Ayarı
+    var redIcon = new L.Icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+
+    locations.forEach(function(loc) {
+        var marker = L.marker(loc.coords, {icon: redIcon}).addTo(map);
+
+        // İSİM ETİKETİ EKLEME (KALICI)
+        marker.bindTooltip(loc.name, {
+            permanent: true,      // Sürekli açık kalsın
+            direction: 'top',     // İşaretçinin üstünde dursun
+            className: 'map-label', // CSS stilini uygula
+            offset: [0, -35]      // Konumu biraz yukarı kaydır
+        });
+        
+        // Tıklama Fonksiyonu
+        marker.on('click', function() {
+            var data = locationData[loc.id];
+            var sidebar = document.getElementById('sidebar-content');
+            sidebar.innerHTML = `
+                <h2 class="info-title">${data.title}</h2>
+                <img src="${data.img}" class="info-img" alt="${data.title}">
+                <p class="info-text">${data.desc}</p>
+                <span class="coord-text">📍 ${loc.coords[0].toFixed(4)}, ${loc.coords[1].toFixed(4)}</span>
+            `;
+        });
+    });
+
+    // --- 5. HEATMAP (Sarı-Kırmızı Uydu Uyumlu) ---
     var heatPoints = [];
     locations.forEach(loc => {
         heatPoints.push([loc.coords[0], loc.coords[1], 1.0]);
-        for(let i=0; i<60; i++) {
+        for(let i=0; i<80; i++) { // Biraz daha yoğunlaştırdım
             heatPoints.push([
-                loc.coords[0] + (Math.random()-0.5)/18, 
-                loc.coords[1] + (Math.random()-0.5)/18, 
+                loc.coords[0] + (Math.random()-0.5)/15, 
+                loc.coords[1] + (Math.random()-0.5)/15, 
                 0.5
             ]);
         }
     });
 
     L.heatLayer(heatPoints, { 
-        radius: 30, // Biraz daha geniş
-        blur: 25, 
-        maxZoom: 10,
-        // Mavi-Yeşil yerine Doğrudan Sarıdan Kırmızıya (Uydu üstünde daha iyi durur)
-        gradient: {0.3: 'yellow', 0.7: 'orange', 1: 'red'} 
+        radius: 35,
+        blur: 20, 
+        gradient: {0.2: 'yellow', 0.6: 'orange', 1: 'red'} 
     }).addTo(map);
-
-    // İşaretçiler
-    locations.forEach(function(loc) {
-        // Standart mavi marker yerine kırmızı marker kullanalım ki uydu üzerinde kaybolmasın
-        var redIcon = new L.Icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        var marker = L.marker(loc.coords, {icon: redIcon}).addTo(map);
-        
-        marker.on('click', function() {
-            var data = locationData[loc.id];
-            var sidebar = document.getElementById('sidebar-content');
-            
-            sidebar.innerHTML = `
-                <h2 class="info-title">${data.title}</h2>
-                <img src="${data.img}" class="info-img" alt="${data.title}">
-                <p class="info-text">${data.desc}</p>
-                <span class="coord-text">📍 Koordinat: ${loc.coords[0].toFixed(4)}, ${loc.coords[1].toFixed(4)}</span>
-            `;
-        });
-    });
 
     </script>
 </body>
