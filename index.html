@@ -6,10 +6,45 @@
     <title>Denizli Tamgaları Yoğunluk Haritası</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css">
     
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #222; /* Koyu tema arka plan */
+            color: #eee;
+        }
+
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            border-bottom: 2px solid #444;
+        }
+
+        /* HARİTA KUTUSU AYARLARI */
+        #map {
+            height: 600px;       /* Yükseklik ŞART! Yoksa harita görünmez. */
+            width: 80%;          /* Genişlik %80 */
+            margin: 30px auto;   /* Ortalamak için */
+            border: 3px solid #555;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            background-color: #333; /* Harita yüklenene kadar görünecek renk */
+        }
+
+        /* Mobilde harita sığsın diye */
+        @media (max-width: 768px) {
+            #map {
+                width: 95%;
+                height: 400px;
+            }
+        }
+    </style>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 </head>
 <body>
@@ -40,7 +75,7 @@
 
     // 3. Harita Altlığı (Koyu Mod)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
         subdomains: 'abcd',
         maxZoom: 19
     }).addTo(map);
@@ -48,38 +83,18 @@
 
     // --- VERİ HAZIRLIĞI ---
 
-    // Ana lokasyonlarımız (Eksik olan 'link' özellikleri eklendi)
     var mainLocations = [
-        { 
-            name: "Kale-i Tavas Mezarlığı", 
-            coords: [37.568, 29.070], 
-            " 
-        },
-        { 
-            name: "Çardak Han Kervansarayı", 
-            coords: [37.825, 29.660], 
-            " 
-        },
-        { 
-            name: "Denizli Kent Müzesi", 
-            coords: [37.774, 29.087], 
-            " 
-        },
-        { 
-            name: "Çivril Özdemirci Mezarlığı", 
-            coords: [38.295, 29.730], 
-           " 
-        }
+        { name: "Kale-i Tavas Mezarlığı", coords: [37.568, 29.070], link: "pages/kale-i-tavas.html" },
+        { name: "Çardak Han Kervansarayı", coords: [37.825, 29.660], link: "pages/cardak-han.html" },
+        { name: "Denizli Kent Müzesi", coords: [37.774, 29.087], link: "pages/denizli-muze.html" },
+        { name: "Çivril Özdemirci Mezarlığı", coords: [38.295, 29.730], link: "pages/civril-ozdemirci.html" }
     ];
 
     // HEATMAP İÇİN VERİ SİMÜLASYONU
     var heatDataPoints = [];
 
     mainLocations.forEach(function(loc) {
-        // Ana merkezi ekle (Yoğunluğu yüksek olsun: 1.0)
         heatDataPoints.push([loc.coords[0], loc.coords[1], 1.0]); 
-
-        // Her merkezin etrafına 50 tane rastgele küçük nokta ekle
         for (let i = 0; i < 50; i++) {
             var randomLat = loc.coords[0] + (Math.random() - 0.5) / 20; 
             var randomLng = loc.coords[1] + (Math.random() - 0.5) / 20;
@@ -90,26 +105,20 @@
 
     // --- KATMANLARI EKLE ---
 
-    // 1. HEATMAP (YOĞUNLUK) KATMANI
+    // 1. Heatmap Katmanı
     var heat = L.heatLayer(heatDataPoints, {
         radius: 25,
         blur: 20,
         maxZoom: 10,
-        gradient: {
-            0.2: 'blue',
-            0.4: 'cyan',
-            0.6: 'lime',
-            0.8: 'yellow',
-            1.0: 'red'
-        }
+        gradient: { 0.2: 'blue', 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
     }).addTo(map);
 
 
-    // 2. İŞARETÇİ (MARKER) KATMANI
+    // 2. Marker Katmanı
     mainLocations.forEach(function(loc) {
         var marker = L.marker(loc.coords).addTo(map);
         marker.bindPopup(`
-            <div style="text-align:center">
+            <div style="text-align:center; color:black;">
                 <b>${loc.name}</b><br><br>
                 <a href="${loc.link}" style="background-color:#d35400; color:white; padding:5px 10px; text-decoration:none; border-radius:5px;">İncele</a>
             </div>
