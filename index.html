@@ -345,7 +345,7 @@
 
     locations.forEach(function(loc) {
         var marker = L.marker(loc.coords, {icon: copperIcon}).addTo(map);
-        marker.bindTooltip(loc.name, { permanent: true, direction: 'top', className: 'map-label', offset: [0, -10] });
+        marker.bindTooltip(loc.name, { permanent: true, direction: 'top', className: 'map-label', offset: [0, -35] });
         
         marker.on('click', function() {
             map.flyTo(loc.coords, 15, { animate: true, duration: 1.5 });
